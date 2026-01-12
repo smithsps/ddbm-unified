@@ -1,14 +1,31 @@
 import Config
 
 # Load .env file in dev/test (not in releases)
-if config_env() in [:dev, :test] and File.exists?(".env") do
-  Dotenvy.source!([".env"])
-end
+env =
+  if config_env() in [:dev, :test] and File.exists?(".env") do
+    Dotenvy.source!([".env"])
+  else
+    %{}
+  end
 
-# Discord bot token - required for the bot to connect
-if discord_token = System.get_env("DISCORD_TOKEN") do
+# Discord bot configuration
+if discord_token = env["DISCORD_TOKEN"] || System.get_env("DISCORD_TOKEN") do
   config :nostrum, token: discord_token
   config :ddbm_discord, start_bot: true
+
+  # Guild and App IDs for slash command registration
+  if guild_id = env["DISCORD_GUILD_ID"] || System.get_env("DISCORD_GUILD_ID") do
+    config :ddbm_discord, guild_id: String.to_integer(guild_id)
+  end
+
+  if app_id = env["DISCORD_APP_ID"] || System.get_env("DISCORD_APP_ID") do
+    config :ddbm_discord, app_id: String.to_integer(app_id)
+  end
+
+  # Bot notification channel ID
+  if bot_channel_id = env["DISCORD_BOT_CHANNEL"] || System.get_env("DISCORD_BOT_CHANNEL") do
+    config :ddbm_discord, bot_channel_id: String.to_integer(bot_channel_id)
+  end
 end
 
 # config/runtime.exs is executed for all environments, including

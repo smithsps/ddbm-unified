@@ -8,7 +8,11 @@ defmodule DdbmDiscord.Application do
     children =
       if Application.get_env(:ddbm_discord, :start_bot, true) do
         IO.puts("\n==> Starting Discord bot...")
-        [DdbmDiscord.Consumer]
+
+        [
+          DdbmDiscord.Consumer,
+          DdbmDiscord.CommandSyncer
+        ]
       else
         []
       end

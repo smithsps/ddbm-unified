@@ -28,7 +28,7 @@ defmodule DdbmDiscord.MixProject do
 
   defp deps do
     [
-      {:nostrum, "~> 0.10", runtime: Mix.env() == :prod},
+      {:nostrum, "~> 0.10"},
       {:dotenvy, "~> 0.9"},
       {:ddbm, in_umbrella: true}
     ]
