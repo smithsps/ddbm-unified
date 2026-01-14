@@ -30,5 +30,7 @@ erl_crash.dump
 # Environment secrets
 .env
 .env.local
+.env.prod
+*.db.bak
 
 .claude

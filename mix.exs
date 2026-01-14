@@ -8,13 +8,28 @@ defmodule Ddbm.Umbrella.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      releases: releases()
     ]
   end
 
   def cli do
     [
       preferred_envs: [precommit: :test]
+    ]
+  end
+
+  defp releases do
+    [
+      ddbm: [
+        applications: [
+          ddbm: :permanent,
+          ddbm_web: :permanent,
+          ddbm_discord: :permanent
+        ],
+        include_executables_for: [:unix],
+        steps: [:assemble, :tar]
+      ]
     ]
   end
 
@@ -50,7 +65,11 @@ defmodule Ddbm.Umbrella.MixProject do
     [
       # run `mix setup` in all child apps
       setup: ["cmd mix setup"],
-      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"],
+      release: [
+        "do --app ddbm_web assets.deploy",
+        "release ddbm"
+      ]
     ]
   end
 end
