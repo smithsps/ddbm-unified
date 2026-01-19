@@ -20,6 +20,7 @@
         # Fetch Mix dependencies first
         mixDeps = pkgs.beamPackages.fetchMixDeps {
           pname = "ddbm-mix-deps";
+          version = "0.1.0";
           src = ./.;
           # This hash will need to be updated when mix.lock changes
           # Set to lib.fakeHash to get the real hash on first build
