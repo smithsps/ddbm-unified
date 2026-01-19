@@ -17,16 +17,24 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
+        # Fetch Mix dependencies first
+        mixDeps = pkgs.beamPackages.fetchMixDeps {
+          pname = "ddbm-mix-deps";
+          src = ./.;
+          # This hash will need to be updated when mix.lock changes
+          # Set to lib.fakeHash to get the real hash on first build
+          hash = pkgs.lib.fakeHash;
+        };
+
         # Build the Elixir release using mixRelease
-        # mixRelease handles fetching dependencies from mix.lock automatically
         ddbm = pkgs.beamPackages.mixRelease {
           pname = "ddbm";
           version = "0.1.0";
 
           src = ./.;
 
-          # mixRelease will fetch dependencies from mix.lock automatically
-          # No need for mixNixDeps or mix2nix
+          # Use the fetched dependencies
+          mixFodDeps = mixDeps;
 
           # Build assets as part of the release
           preBuild = ''
@@ -80,7 +88,7 @@
 
         # Automatically set the package to the one from this flake
         config = lib.mkIf config.services.ddbm.enable {
-          services.ddbm.package = lib.mkDefault self.packages.${pkgs.system}.default;
+          services.ddbm.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.default;
         };
       };
     };
