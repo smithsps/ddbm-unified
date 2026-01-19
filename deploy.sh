@@ -18,7 +18,7 @@ echo "→ Pushing to git..."
 git push
 
 echo "→ Pulling on server..."
-ssh "$SERVER" "cd $REPO_PATH && git pull"
+ssh "$SERVER" "cd $REPO_PATH && sudo git pull"
 
 echo "→ Rebuilding NixOS..."
 ssh "$SERVER" "sudo nixos-rebuild switch"
