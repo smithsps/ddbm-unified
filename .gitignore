@@ -34,3 +34,9 @@ erl_crash.dump
 *.db.bak
 
 .claude
+
+# Nix
+result
+result-*
+.nix-mix
+.nix-hex
