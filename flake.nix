@@ -69,12 +69,10 @@
             echo "Run 'mix setup' to get started"
           '';
         };
-
-        # NixOS module
-        nixosModules.default = import ./nixos-module.nix;
       }
     ) // {
-      # Make overlay available
+      # Make overlay and NixOS module available at top-level
       overlays.default = overlay;
+      nixosModules.default = import ./nixos-module.nix;
     };
 }
