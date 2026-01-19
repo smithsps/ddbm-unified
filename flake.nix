@@ -73,6 +73,15 @@
     ) // {
       # Make overlay and NixOS module available at top-level
       overlays.default = overlay;
-      nixosModules.default = import ./nixos-module.nix;
+
+      # NixOS module that automatically provides the package
+      nixosModules.default = { config, lib, pkgs, ... }: {
+        imports = [ ./nixos-module.nix ];
+
+        # Automatically set the package to the one from this flake
+        config = lib.mkIf config.services.ddbm.enable {
+          services.ddbm.package = lib.mkDefault self.packages.${pkgs.system}.default;
+        };
+      };
     };
 }

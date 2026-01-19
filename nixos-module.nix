@@ -11,8 +11,7 @@ in
 
     package = mkOption {
       type = types.package;
-      default = pkgs.ddbm;
-      description = "The DDBM package to use";
+      description = "The DDBM package to use (automatically set when using the flake's nixosModule)";
     };
 
     user = mkOption {
