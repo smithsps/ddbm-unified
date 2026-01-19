@@ -105,8 +105,6 @@ in
     users.users.${cfg.user} = {
       isSystemUser = true;
       group = cfg.group;
-      home = cfg.dataDir;
-      createHome = true;
     };
 
     users.groups.${cfg.group} = {};
@@ -141,6 +139,8 @@ in
         WorkingDirectory = cfg.dataDir;
         RuntimeDirectory = "ddbm";
         RuntimeDirectoryMode = "0755";
+        StateDirectory = "ddbm";
+        StateDirectoryMode = "0750";
 
         # Load secrets from environment file if provided
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
