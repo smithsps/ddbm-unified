@@ -23,7 +23,7 @@
           version = "0.1.0";
           src = ./.;
           # This hash will need to be updated when mix.lock changes
-          hash = pkgs.lib.fakehash;
+          hash = pkgs.lib.fakeHash;
         };
 
         # Build the Elixir release using mixRelease
