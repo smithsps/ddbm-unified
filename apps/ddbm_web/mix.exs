@@ -45,15 +45,6 @@ defmodule DdbmWeb.MixProject do
       {:phoenix_live_view, "~> 1.1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.2.0",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
@@ -70,11 +61,17 @@ defmodule DdbmWeb.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind ddbm_web", "esbuild ddbm_web"],
+      "assets.setup": ["cmd --cd assets npm install"],
+      "assets.build": ["compile", "cmd --cd assets npm run build"],
       "assets.deploy": [
-        "tailwind ddbm_web --minify",
-        "esbuild ddbm_web --minify",
+        "compile",
+        "cmd --cd assets npm run deploy",
+        "phx.digest"
+      ],
+      "assets.deploy.nix": [
+        "compile",
+        "cmd --cd assets npx tailwindcss --input=css/app.css --output=../priv/static/assets/css/app.css --minify",
+        "cmd --cd assets NODE_PATH=../../../_build/prod:../../../deps npx esbuild js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=. --minify",
         "phx.digest"
       ]
     ]

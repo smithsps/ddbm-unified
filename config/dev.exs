@@ -22,8 +22,8 @@ config :ddbm_web, DdbmWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "ZwXIOU/TVaQZT5PzZ+vNkDFVIjpzL+kXLgEZHwkIzwUj99oG2NifqJeRQA4P2juQ",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:ddbm_web, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:ddbm_web, ~w(--watch)]}
+    esbuild: {DdbmWeb.Watchers, :esbuild, []},
+    tailwind: {DdbmWeb.Watchers, :tailwind, []}
   ]
 
 # ## SSL Support

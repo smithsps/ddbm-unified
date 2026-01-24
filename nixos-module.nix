@@ -44,6 +44,12 @@ in
       description = "Port for the web server";
     };
 
+    logLevel = mkOption {
+      type = types.enum ["debug" "info" "warning" "error"];
+      default = "info";
+      description = "Log level for the application";
+    };
+
     environmentFile = mkOption {
       type = types.nullOr types.path;
       default = null;
@@ -98,6 +104,12 @@ in
       default = false;
       description = "Whether to open the firewall for the web interface";
     };
+
+    enableHealthCheck = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to enable systemd health check for the web server";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -116,9 +128,11 @@ in
       environment = {
         RELEASE_NODE = "ddbm@${cfg.host}";
         PHX_HOST = cfg.host;
+        PHX_SERVER = "true";
         PORT = toString cfg.port;
         DATABASE_PATH = "${cfg.dataDir}/ddbm.db";
         RELEASE_TMP = "/run/ddbm";
+        LOG_LEVEL = cfg.logLevel;
       } // optionalAttrs (cfg.discord.token != null) {
         DISCORD_TOKEN = cfg.discord.token;
       } // optionalAttrs (cfg.discord.appId != null) {
@@ -150,10 +164,35 @@ in
         ProtectSystem = "strict";
         ProtectHome = true;
         ReadWritePaths = [ cfg.dataDir ];
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
+        RestrictNamespaces = true;
+        LockPersonality = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        RemoveIPC = true;
+        PrivateMounts = true;
 
         # Start the release
         ExecStart = "${cfg.package}/bin/ddbm start";
         ExecStop = "${cfg.package}/bin/ddbm stop";
+
+        # Health check
+        ExecStartPost = mkIf cfg.enableHealthCheck (pkgs.writeShellScript "ddbm-health-check" ''
+          echo "Waiting for DDBM to become ready..."
+          for i in {1..30}; do
+            if ${pkgs.curl}/bin/curl -sf http://${cfg.host}:${toString cfg.port}/ >/dev/null 2>&1; then
+              echo "DDBM is ready and responding"
+              exit 0
+            fi
+            echo "Attempt $i/30: Service not ready yet..."
+            sleep 1
+          done
+          echo "ERROR: DDBM failed to start within 30 seconds"
+          exit 1
+        '');
 
         # Restart policy
         Restart = "on-failure";
@@ -161,8 +200,17 @@ in
       };
 
       preStart = ''
+        # Ensure data directory exists and has correct permissions
+        mkdir -p ${cfg.dataDir}
+        chmod 750 ${cfg.dataDir}
+
         # Run migrations on startup
-        ${cfg.package}/bin/ddbm eval "Ddbm.Release.migrate()"
+        echo "Running database migrations..."
+        if ! ${cfg.package}/bin/ddbm eval "Ddbm.Release.migrate()"; then
+          echo "ERROR: Database migrations failed!"
+          exit 1
+        fi
+        echo "Migrations completed successfully"
       '';
     };
 
