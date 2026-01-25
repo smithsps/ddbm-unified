@@ -27,15 +27,76 @@ defmodule Ddbm.Tokens do
   end
 
   @doc """
+  Gets transactions for a user with pagination and optional filters.
+
+  Options:
+    - :page - Page number (default: 1)
+    - :per_page - Items per page (default: 20)
+    - :token - Filter by token type (optional)
+    - :direction - :received (default) or :all
+
+  Returns a map with :entries and :total_count.
+  """
+  def get_transactions_by_user(user_id, opts) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 20)
+    token_filter = Keyword.get(opts, :token)
+    direction = Keyword.get(opts, :direction, :received)
+
+    query =
+      case direction do
+        :all ->
+          from(t in Transaction,
+            where: t.user_id == ^user_id or t.sender_user_id == ^user_id
+          )
+
+        :received ->
+          from(t in Transaction, where: t.user_id == ^user_id)
+      end
+
+    query =
+      if token_filter do
+        where(query, [t], t.token == ^token_filter)
+      else
+        query
+      end
+
+    total_count = Repo.aggregate(query, :count)
+
+    entries =
+      query
+      |> order_by([t], desc: t.inserted_at)
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      total_count: total_count,
+      page: page,
+      per_page: per_page,
+      total_pages: ceil(total_count / per_page)
+    }
+  end
+
+  @doc """
   Gets transactions sent by a user for a specific token type since a given datetime.
   Used for rate limit checking.
   """
   def get_transactions_sent_by_user(sender_user_id, token, since) do
-    Transaction
-    |> where([t], t.sender_user_id == ^sender_user_id)
-    |> where([t], t.token == ^token)
-    |> where([t], t.inserted_at >= ^since)
-    |> Repo.all()
+    query =
+      Transaction
+      |> where([t], t.sender_user_id == ^sender_user_id)
+      |> where([t], t.inserted_at >= ^since)
+
+    query =
+      if token do
+        where(query, [t], t.token == ^token)
+      else
+        query
+      end
+
+    Repo.all(query)
   end
 
   @doc """
@@ -160,6 +221,132 @@ defmodule Ddbm.Tokens do
       DateTime.add(monday_reset, -7 * 24 * 3600, :second)
     else
       monday_reset
+    end
+  end
+
+  @doc """
+  Gets the leaderboard for a specific token type with user information.
+
+  Returns a list of maps with user_id, total, and user data (if available).
+  Limited to top 100 users.
+  """
+  def get_token_leaderboard(token, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 100)
+
+    query =
+      from(t in Transaction,
+        where: t.token == ^token,
+        group_by: t.user_id,
+        select: %{
+          user_id: t.user_id,
+          total: sum(t.amount)
+        },
+        order_by: [desc: sum(t.amount)],
+        limit: ^limit
+      )
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Checks if a user can give a token (wrapper around check_rate_limit).
+
+  Returns true if allowed, false otherwise.
+  """
+  def can_give_token?(sender_user_id, token_id, _amount \\ 1) do
+    case check_rate_limit(sender_user_id, token_id) do
+      {:ok, :allowed} -> true
+      _ -> false
+    end
+  end
+
+  @doc """
+  Gives a token from one user to another via the web interface.
+
+  Creates a transaction with source "WebGiveToken".
+  Checks rate limits before creating the transaction.
+
+  Returns:
+    - {:ok, transaction} if successful
+    - {:error, reason} if rate limit exceeded or invalid
+  """
+  def give_token(sender_user_id, receiver_user_id, token_id, amount \\ 1) do
+    # Prevent self-gifting
+    if sender_user_id == receiver_user_id do
+      {:error, :cannot_give_to_self}
+    else
+      # Check rate limits
+      case check_rate_limit(sender_user_id, token_id) do
+        {:ok, :allowed} ->
+          create_transaction(%{
+            user_id: receiver_user_id,
+            sender_user_id: sender_user_id,
+            token: token_id,
+            amount: amount,
+            source: "WebGiveToken"
+          })
+
+        {:error, :daily_limit, current, limit} ->
+          {:error, {:daily_limit, current, limit}}
+
+        {:error, :weekly_limit, current, limit} ->
+          {:error, {:weekly_limit, current, limit}}
+
+        error ->
+          error
+      end
+    end
+  end
+
+  @doc """
+  Gets the current rate limit status for a user and token.
+
+  Returns a map with:
+    - :daily_used - number of tokens given today
+    - :daily_limit - daily limit for this token
+    - :weekly_used - number of tokens given this week
+    - :weekly_limit - weekly limit for this token
+    - :can_give - boolean indicating if user can give more
+  """
+  def get_rate_limit_status(sender_user_id, token_id) do
+    token = Token.get(token_id)
+
+    if token do
+      now = DateTime.utc_now()
+      beginning_of_day = beginning_of_day(now)
+      beginning_of_week = beginning_of_week(now)
+
+      transactions = get_transactions_sent_by_user(sender_user_id, token.id, beginning_of_week)
+
+      daily_used =
+        transactions
+        |> Enum.filter(&(DateTime.compare(&1.inserted_at, beginning_of_day) != :lt))
+        |> Enum.reduce(0, &(&1.amount + &2))
+
+      weekly_used = Enum.reduce(transactions, 0, &(&1.amount + &2))
+
+      daily_limit = token.limits[:daily]
+      weekly_limit = token.limits[:weekly]
+
+      can_give =
+        (is_nil(daily_limit) || daily_used < daily_limit) &&
+          (is_nil(weekly_limit) || weekly_used < weekly_limit)
+
+      %{
+        daily_used: daily_used,
+        daily_limit: daily_limit,
+        weekly_used: weekly_used,
+        weekly_limit: weekly_limit,
+        can_give: can_give
+      }
+    else
+      %{
+        daily_used: 0,
+        daily_limit: 0,
+        weekly_used: 0,
+        weekly_limit: 0,
+        can_give: false
+      }
     end
   end
 end

@@ -8,16 +8,49 @@ defmodule DdbmWeb.Router do
     plug :put_root_layout, html: {DdbmWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug DdbmWeb.Plugs.LoadCurrentUser
   end
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
+  pipeline :require_auth do
+    plug DdbmWeb.Plugs.RequireAuth
+  end
+
   scope "/", DdbmWeb do
     pipe_through :browser
 
     get "/", PageController, :home
+  end
+
+  # Authentication routes
+  scope "/auth", DdbmWeb do
+    pipe_through :browser
+
+    get "/:provider", AuthController, :request
+    get "/:provider/callback", AuthController, :callback
+    post "/:provider/callback", AuthController, :callback
+  end
+
+  scope "/", DdbmWeb do
+    pipe_through :browser
+
+    delete "/logout", AuthController, :delete
+  end
+
+  # Authenticated routes
+  scope "/", DdbmWeb do
+    pipe_through [:browser, :require_auth]
+
+    live_session :authenticated,
+      on_mount: [{DdbmWeb.UserAuth, :require_authenticated_user}] do
+      live "/dashboard", DashboardLive, :index
+      live "/tokens", TokensLive, :index
+      live "/transactions", TransactionsLive, :index
+      live "/give", GiveLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.

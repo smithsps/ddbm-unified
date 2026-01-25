@@ -8,6 +8,15 @@ env =
     %{}
   end
 
+# Discord OAuth configuration
+if client_id = env["DISCORD_OAUTH_CLIENT_ID"] || System.get_env("DISCORD_OAUTH_CLIENT_ID") do
+  if client_secret = env["DISCORD_OAUTH_CLIENT_SECRET"] || System.get_env("DISCORD_OAUTH_CLIENT_SECRET") do
+    config :ueberauth, Ueberauth.Strategy.Discord.OAuth,
+      client_id: client_id,
+      client_secret: client_secret
+  end
+end
+
 # Discord bot configuration
 if discord_token = env["DISCORD_TOKEN"] || System.get_env("DISCORD_TOKEN") do
   config :nostrum, token: discord_token

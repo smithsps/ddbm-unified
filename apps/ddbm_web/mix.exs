@@ -50,7 +50,9 @@ defmodule DdbmWeb.MixProject do
       {:gettext, "~> 0.26"},
       {:ddbm, in_umbrella: true},
       {:jason, "~> 1.2"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:ueberauth, "~> 0.10"},
+      {:ueberauth_discord, "~> 0.7"}
     ]
   end
 

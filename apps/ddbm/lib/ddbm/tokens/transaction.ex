@@ -6,6 +6,8 @@ defmodule Ddbm.Tokens.Transaction do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+
   schema "transactions" do
     field :user_id, :string
     field :sender_user_id, :string
