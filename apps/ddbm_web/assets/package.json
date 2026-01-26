@@ -2,24 +2,10 @@
   "name": "ddbm_web",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "build": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i css/app.css -o ../priv/static/assets/css/app.css",
-    "build:js": "NODE_PATH=../../../_build/dev:../../../deps esbuild js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.",
-    "deploy": "npm run deploy:css && npm run deploy:js",
-    "deploy:css": "tailwindcss -i css/app.css -o ../priv/static/assets/css/app.css --minify",
-    "deploy:js": "NODE_PATH=../../../_build/prod:../../../deps esbuild js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=. --minify",
-    "watch:css": "tailwindcss -i css/app.css -o ../priv/static/assets/css/app.css --watch",
-    "watch:js": "NODE_PATH=../../../_build/dev:../../../deps esbuild js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=. --watch"
-  },
   "dependencies": {
     "heroicons": "^2.2.0",
     "phoenix": "file:../../../deps/phoenix",
     "phoenix_html": "file:../../../deps/phoenix_html",
     "phoenix_live_view": "file:../../../deps/phoenix_live_view"
-  },
-  "devDependencies": {
-    "@tailwindcss/cli": "^4.1.7",
-    "esbuild": "^0.25.4"
   }
 }

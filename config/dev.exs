@@ -20,11 +20,7 @@ config :ddbm_web, DdbmWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "ZwXIOU/TVaQZT5PzZ+vNkDFVIjpzL+kXLgEZHwkIzwUj99oG2NifqJeRQA4P2juQ",
-  watchers: [
-    esbuild: {DdbmWeb.Watchers, :esbuild, []},
-    tailwind: {DdbmWeb.Watchers, :tailwind, []}
-  ]
+  secret_key_base: "ZwXIOU/TVaQZT5PzZ+vNkDFVIjpzL+kXLgEZHwkIzwUj99oG2NifqJeRQA4P2juQ"
 
 # ## SSL Support
 #

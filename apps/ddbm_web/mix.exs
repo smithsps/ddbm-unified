@@ -52,7 +52,9 @@ defmodule DdbmWeb.MixProject do
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"},
       {:ueberauth, "~> 0.10"},
-      {:ueberauth_discord, "~> 0.7"}
+      {:ueberauth_discord, "~> 0.7"},
+      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev}
     ]
   end
 
@@ -63,17 +65,12 @@ defmodule DdbmWeb.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["cmd --cd assets npm install"],
-      "assets.build": ["compile", "cmd --cd assets npm run build"],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing", "cmd --cd assets npm install"],
+      "assets.build": ["compile", "tailwind ddbm_web", "esbuild ddbm_web"],
       "assets.deploy": [
         "compile",
-        "cmd --cd assets npm run deploy",
-        "phx.digest"
-      ],
-      "assets.deploy.nix": [
-        "compile",
-        "cmd --cd assets npx tailwindcss --input=css/app.css --output=../priv/static/assets/css/app.css --minify",
-        "cmd --cd assets NODE_PATH=../../../_build/prod:../../../deps npx esbuild js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=. --minify",
+        "tailwind ddbm_web --minify",
+        "esbuild ddbm_web --minify",
         "phx.digest"
       ]
     ]

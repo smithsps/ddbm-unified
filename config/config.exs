@@ -28,8 +28,22 @@ config :ddbm_web, DdbmWeb.Endpoint,
   pubsub_server: Ddbm.PubSub,
   live_view: [signing_salt: "R3a6z6Nf"]
 
-# esbuild and tailwind are now managed via npm in apps/ddbm_web/assets/package.json
-# See mix aliases in apps/ddbm_web/mix.exs for build commands
+# Configure esbuild (version will be downloaded automatically)
+config :esbuild,
+  version: "0.25.0",
+  ddbm_web: [
+    args: ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../apps/ddbm_web/assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
+# Configure tailwind (version will be downloaded automatically)
+config :tailwind,
+  version: "4.1.12",
+  ddbm_web: [
+    args: ~w(--input=css/app.css --output=../priv/static/assets/css/app.css),
+    cd: Path.expand("../apps/ddbm_web/assets", __DIR__)
+  ]
 
 # Configures Elixir's Logger
 config :logger, :default_formatter,

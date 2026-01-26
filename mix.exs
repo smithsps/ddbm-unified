@@ -48,7 +48,8 @@ defmodule Ddbm.Umbrella.MixProject do
   defp deps do
     [
       # Required to run "mix format" on ~H/.heex files from the umbrella root
-      {:phoenix_live_view, ">= 0.0.0"}
+      {:phoenix_live_view, ">= 0.0.0"},
+      {:deps_nix, "~> 2.0", only: :dev}
     ]
   end
 
@@ -69,7 +70,9 @@ defmodule Ddbm.Umbrella.MixProject do
       release: [
         "do --app ddbm_web assets.deploy",
         "release ddbm"
-      ]
+      ],
+      "deps.get": ["deps.get", "deps.nix"],
+      "deps.update": ["deps.update", "deps.nix"]
     ]
   end
 end

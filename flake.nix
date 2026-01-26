@@ -11,54 +11,38 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        mixDeps = pkgs.beamPackages.fetchMixDeps {
-          pname = "ddbm-mix-deps";
-          version = "0.1.0";
-          src = ./.;
-          hash = "sha256-wVzH1vpx28QZIhZAgj4Bkq9VOU+gWbuQvzwOG5lAq1U=";
-        };
+        mixNixDeps = pkgs.callPackages ./deps.nix { };
 
-        npmDeps = pkgs.fetchNpmDeps {
-          src = ./apps/ddbm_web/assets;
-          hash = "sha256-HW6o8pzFwJ85sOaDEbNk+eoNhHJmpteAnbdTVEuyREs=";
-        };
-
-        commonInputs = with pkgs; [
-          nodejs_20
-          sqlite
-        ];
+        # commonInputs = with pkgs; [
+        #   nodejs_20
+        #   sqlite
+        # ];
       in
       {
         packages.default = pkgs.beamPackages.mixRelease {
+          inherit mixNixDeps;
           pname = "ddbm";
           version = "0.1.0";
           src = ./.;
-          mixFodDeps = mixDeps;
 
-          preBuild = ''
-            export npm_config_cache=${npmDeps}
-            cd apps/ddbm_web/assets
-            npm ci --offline
-            cd ../../..
-            patchShebangs apps/ddbm_web/assets/node_modules
-            mix do --app ddbm_web assets.deploy.nix
+          postBuild = ''
+            tailwind_path="$(mix do \
+              app.config --no-deps-check --no-compile, \
+              eval 'Tailwind.bin_path() |> IO.puts()')"
+            esbuild_path="$(mix do \
+              app.config --no-deps-check --no-compile, \
+              eval 'Esbuild.bin_path() |> IO.puts()')"
+
+            ln -sfv ${mixNixDeps.tailwind}/bin/tailwindcss "$tailwind_path"
+            ln -sfv ${mixNixDeps.esbuild}/bin/esbuild "$esbuild_path"
+            ln -sfv ${mixNixDeps.heroicons} deps/heroicons
+
+            mix do \
+              app.config --no-deps-check --no-compile, \
+              assets.deploy --no-deps-check
           '';
 
-          buildInputs = commonInputs;
-        };
-
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            elixir
-            erlang
-          ] ++ commonInputs;
-
-          shellHook = ''
-            export MIX_HOME=$PWD/.nix-mix
-            export HEX_HOME=$PWD/.nix-hex
-            echo "DDBM development environment"
-            echo "Run 'mix setup' to get started"
-          '';
+          #buildInputs = commonInputs;
         };
       }
     ) // {
