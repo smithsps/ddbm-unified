@@ -11,12 +11,16 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        mixNixDeps = pkgs.callPackages ./deps.nix { };
-
-        # commonInputs = with pkgs; [
-        #   nodejs_20
-        #   sqlite
-        # ];
+        mixNixDeps = pkgs.callPackages ./deps.nix {
+          overrides = (final: prev: {
+            nostrum = prev.nostrum.overrideAttrs (old: {
+              postPatch = ''
+                substituteInPlace mix.exs \
+                  --replace-quiet 'compilers: Mix.compilers() ++ [:appup],' 'compilers: Mix.compilers(),'
+              '';
+            });
+          });
+        };
       in
       {
         packages.default = pkgs.beamPackages.mixRelease {
@@ -41,8 +45,6 @@
               app.config --no-deps-check --no-compile, \
               assets.deploy --no-deps-check
           '';
-
-          #buildInputs = commonInputs;
         };
       }
     ) // {

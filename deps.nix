@@ -178,7 +178,7 @@ let
 
       bandit =
         let
-          version = "1.10.1";
+          version = "1.10.2";
           drv = buildMix {
             inherit version;
             name = "bandit";
@@ -187,7 +187,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "bandit";
-              sha256 = "4b4c35f273030e44268ace53bf3d5991dfc385c77374244e2f960876547671aa";
+              sha256 = "27b2a61b647914b1726c2ced3601473be5f7aa6bb468564a688646a689b3ee45";
             };
 
             beamDeps = [
@@ -553,6 +553,13 @@ let
         in
         drv;
 
+      heroicons = fetchFromGitHub {
+        owner = "tailwindlabs";
+        repo = "heroicons";
+        rev = "88ab3a0d790e6a47404cba02800a6b25d2afae50";
+        hash = "sha256-4yRqfY8r2Ar9Fr45ikD/8jK+H3g4veEHfXa9BorLxXg=";
+      };
+
       hpax =
         let
           version = "1.0.3";
@@ -748,7 +755,7 @@ let
 
       phoenix_live_view =
         let
-          version = "1.1.19";
+          version = "1.1.20";
           drv = buildMix {
             inherit version;
             name = "phoenix_live_view";
@@ -757,7 +764,7 @@ let
             src = fetchHex {
               inherit version;
               pkg = "phoenix_live_view";
-              sha256 = "d5ad357d6b21562a5b431f0ad09dfe76db9ce5648c6949f1aac334c8c4455d32";
+              sha256 = "c16abd605a21f778165cb0079946351ef20ef84eb1ef467a862fb9a173b1d27d";
             };
 
             beamDeps = [

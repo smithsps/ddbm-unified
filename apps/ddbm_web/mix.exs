@@ -53,6 +53,13 @@ defmodule DdbmWeb.MixProject do
       {:bandit, "~> 1.5"},
       {:ueberauth, "~> 0.10"},
       {:ueberauth_discord, "~> 0.7"},
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.1.1",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev}
     ]
