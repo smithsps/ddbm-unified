@@ -19,6 +19,20 @@
                   --replace-quiet 'compilers: Mix.compilers() ++ [:appup],' 'compilers: Mix.compilers(),'
               '';
             });
+
+            # Provide Nix-managed tailwindcss and esbuild binary to avoid downloads
+            tailwind = prev.tailwind.overrideAttrs (old: {
+              postInstall = (old.postInstall or "") + ''
+                mkdir -p $out/bin
+                ln -sf ${pkgs.tailwindcss_4}/bin/tailwindcss $out/bin/tailwindcss
+              '';
+            });
+            esbuild = prev.esbuild.overrideAttrs (old: {
+              postInstall = (old.postInstall or "") + ''
+                mkdir -p $out/bin
+                ln -sf ${pkgs.esbuild}/bin/esbuild $out/bin/esbuild
+              '';
+            });
           });
         };
       in
@@ -30,17 +44,13 @@
           src = ./.;
 
           postBuild = ''
-            tailwind_path="$(mix do \
-              app.config --no-deps-check --no-compile, \
-              eval 'Tailwind.bin_path() |> IO.puts()')"
-            esbuild_path="$(mix do \
-              app.config --no-deps-check --no-compile, \
-              eval 'Esbuild.bin_path() |> IO.puts()')"
+            # Link dependencies with overridden binaries for the build
+            # Use -n flag to treat symlink destinations as normal files
+            ln -sfnv ${mixNixDeps.heroicons} deps/heroicons
+            ln -sfnv ${mixNixDeps.tailwind} deps/tailwind
+            ln -sfnv ${mixNixDeps.esbuild} deps/esbuild
 
-            ln -sfv ${mixNixDeps.tailwind}/bin/tailwindcss "$tailwind_path"
-            ln -sfv ${mixNixDeps.esbuild}/bin/esbuild "$esbuild_path"
-            ln -sfv ${mixNixDeps.heroicons} deps/heroicons
-
+            # Build assets using Nix-provided tailwind and esbuild
             mix do \
               app.config --no-deps-check --no-compile, \
               assets.deploy --no-deps-check

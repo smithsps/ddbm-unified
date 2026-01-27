@@ -28,18 +28,24 @@ config :ddbm_web, DdbmWeb.Endpoint,
   pubsub_server: Ddbm.PubSub,
   live_view: [signing_salt: "R3a6z6Nf"]
 
-# Configure esbuild (version will be downloaded automatically)
+# Configure esbuild
+# Nix builds provide the binary via deps.nix override, preventing downloads
 config :esbuild,
   version: "0.25.0",
+  version_check: false,
+  path: Path.expand("../deps/esbuild/bin/esbuild", __DIR__),
   ddbm_web: [
     args: ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*),
     cd: Path.expand("../apps/ddbm_web/assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-# Configure tailwind (version will be downloaded automatically)
+# Configure tailwind
+# Nix builds provide the binary via deps.nix override, preventing downloads
 config :tailwind,
   version: "4.1.12",
+  version_check: false,
+  path: Path.expand("../deps/tailwind/bin/tailwindcss", __DIR__),
   ddbm_web: [
     args: ~w(--input=css/app.css --output=../priv/static/assets/css/app.css),
     cd: Path.expand("../apps/ddbm_web/assets", __DIR__)

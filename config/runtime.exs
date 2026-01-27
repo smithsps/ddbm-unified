@@ -45,11 +45,7 @@ end
 # The block below contains prod specific runtime configuration.
 if config_env() == :prod do
   database_path =
-    env["DATABASE_PATH"] || System.get_env("DATABASE_PATH") ||
-      raise """
-      environment variable DATABASE_PATH is missing.
-      For example: /etc/ddbm/ddbm.db
-      """
+    env["DATABASE_PATH"] || System.get_env("DATABASE_PATH")
 
   config :ddbm, Ddbm.Repo,
     database: database_path,
@@ -61,11 +57,7 @@ if config_env() == :prod do
   # to check this value into version control, so we use an environment
   # variable instead.
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
-      raise """
-      environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
-      """
+    env["SECRET_KEY_BASE"] || System.get_env("SECRET_KEY_BASE")
 
   config :ddbm_web, DdbmWeb.Endpoint,
     http: [
