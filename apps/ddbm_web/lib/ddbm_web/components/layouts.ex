@@ -37,12 +37,12 @@ defmodule DdbmWeb.Layouts do
   def app(assigns) do
     ~H"""
     <%= if assigns[:current_user] do %>
-      <header class="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-white/10">
+      <header class="sticky top-0 z-50 bg-base-100/95 backdrop-blur-sm border-b border-base-300">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex items-center justify-between h-16">
             <%!-- Logo --%>
             <div class="flex items-center gap-6">
-              <.link navigate="/" class="flex items-center gap-2 text-white hover:text-purple-400 transition-colors">
+              <.link navigate="/" class="flex items-center gap-2 text-base-content hover:text-primary transition-colors">
                 <img src={~p"/images/logo.svg"} width="32" class="brightness-0 invert" />
                 <span class="text-xl font-bold">DDBM</span>
               </.link>
@@ -60,21 +60,25 @@ defmodule DdbmWeb.Layouts do
             <div class="flex items-center gap-4">
               <%!-- User Menu --%>
               <div class="relative group">
-                <button class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <button class="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200/50 hover:bg-base-200 transition-colors">
                   <.user_avatar user={@current_user} size="sm" />
-                  <span class="hidden sm:block text-sm font-medium text-white">
+                  <span class="hidden sm:block text-sm font-medium text-base-content">
                     {@current_user.discord_username}
                   </span>
-                  <.icon name="hero-chevron-down" class="w-4 h-4 text-gray-400" />
+                  <.icon name="hero-chevron-down" class="w-4 h-4 text-base-content/60" />
                 </button>
 
                 <%!-- Dropdown Menu --%>
-                <div class="absolute right-0 mt-2 w-48 rounded-lg bg-gray-800 border border-white/10 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  <div class="p-2">
+                <div class="absolute right-0 mt-2 w-56 rounded-lg bg-base-200 border border-base-300 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  <div class="p-3">
+                    <div class="mb-3">
+                      <.theme_toggle />
+                    </div>
+                    <div class="border-t border-base-300 my-2"></div>
                     <.link
                       href="/logout"
                       method="delete"
-                      class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 rounded-lg transition-colors"
+                      class="flex items-center gap-2 px-4 py-2 text-sm text-base-content/80 hover:bg-base-300 rounded-lg transition-colors"
                     >
                       <.icon name="hero-arrow-right-on-rectangle" class="w-4 h-4" />
                       Logout
@@ -86,7 +90,7 @@ defmodule DdbmWeb.Layouts do
           </div>
 
           <%!-- Mobile Navigation --%>
-          <div class="md:hidden border-t border-white/10 py-3">
+          <div class="md:hidden border-t border-base-300 py-3">
             <div class="flex flex-col gap-1">
               <.nav_link navigate="/dashboard" icon="hero-home">Dashboard</.nav_link>
               <.nav_link navigate="/tokens" icon="hero-trophy">Tokens</.nav_link>
@@ -98,7 +102,7 @@ defmodule DdbmWeb.Layouts do
       </header>
     <% end %>
 
-    <main class="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+    <main class="min-h-screen bg-base-100">
       {render_slot(@inner_block)}
     </main>
 
@@ -117,7 +121,7 @@ defmodule DdbmWeb.Layouts do
     ~H"""
     <.link
       navigate={@navigate}
-      class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+      class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-base-content/80 hover:text-base-content hover:bg-base-200 rounded-lg transition-colors"
     >
       <.icon :if={@icon} name={@icon} class="w-4 h-4" />
       {render_slot(@inner_block)}
@@ -129,6 +133,45 @@ defmodule DdbmWeb.Layouts do
   User avatar component (imported from TokenComponents).
   """
   defdelegate user_avatar(assigns), to: DdbmWeb.TokenComponents
+
+  @doc """
+  Provides dark vs light theme toggle based on themes defined in app.css.
+
+  See <head> in root.html.heex which applies the theme before page load.
+  """
+  attr :live, :boolean, default: true
+
+  def theme_toggle(assigns) do
+    ~H"""
+    <div class="card relative flex flex-row items-center">
+      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+
+      <button
+        class="flex p-2 cursor-pointer w-1/3"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="system"
+      >
+        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
+      </button>
+
+      <button
+        class="flex p-2 cursor-pointer w-1/3"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="light"
+      >
+        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
+      </button>
+
+      <button
+        class="flex p-2 cursor-pointer w-1/3"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="dark"
+      >
+        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
+      </button>
+    </div>
+    """
+  end
 
   @doc """
   Shows the flash group wfith standard titles and content.

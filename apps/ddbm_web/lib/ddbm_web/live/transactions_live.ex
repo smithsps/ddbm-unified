@@ -86,15 +86,15 @@ defmodule DdbmWeb.TransactionsLive do
     ~H"""
     <Layouts.app flash={@flash} current_user={@current_user}>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-white mb-8">Transaction History</h1>
+        <h1 class="text-3xl font-bold text-base-content mb-8">Transaction History</h1>
 
         <%!-- Filters --%>
         <div class="mb-6 flex gap-4 items-center">
-          <label class="text-sm text-gray-400">Filter by token:</label>
+          <label class="text-sm text-base-content/60">Filter by token:</label>
           <select
             phx-change="filter_token"
             name="token"
-            class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white"
+            class="px-4 py-2 rounded-lg bg-base-200/50 border border-base-300 text-base-content"
           >
             <option value="">All tokens</option>
             <option :for={token <- @all_tokens} value={token.id} selected={@filter_token == token.id}>
@@ -105,15 +105,15 @@ defmodule DdbmWeb.TransactionsLive do
 
         <%!-- Transactions List --%>
         <%= if @total_count == 0 do %>
-          <div class="p-12 text-center rounded-lg bg-white/5 border border-white/10">
+          <div class="p-12 text-center rounded-lg bg-base-200/50 border border-base-300">
             <div class="text-6xl mb-4">📜</div>
-            <p class="text-gray-400 mb-2">No transactions found</p>
-            <p class="text-sm text-gray-500">
+            <p class="text-base-content/60 mb-2">No transactions found</p>
+            <p class="text-sm text-base-content/50">
               <%= if @filter_token do %>
                 Try changing your filter or <.link
                   phx-click="filter_token"
                   phx-value-token=""
-                  class="text-purple-400 hover:text-purple-300"
+                  class="text-primary hover:text-primary/80"
                 >view all transactions</.link>.
               <% else %>
                 Start giving or receiving tokens to see your history here!
@@ -132,7 +132,7 @@ defmodule DdbmWeb.TransactionsLive do
 
           <%!-- Pagination --%>
           <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-400">
+            <div class="text-sm text-base-content/60">
               Showing {@per_page * (@page - 1) + 1} to {min(@per_page * @page, @total_count)} of {@total_count} transactions
             </div>
             <div class="flex gap-2">
@@ -142,14 +142,14 @@ defmodule DdbmWeb.TransactionsLive do
                 class={[
                   "px-4 py-2 rounded-lg font-medium transition-all",
                   @page == 1 &&
-                    "bg-white/5 text-gray-500 cursor-not-allowed",
+                    "bg-base-200/50 text-base-content/50 cursor-not-allowed",
                   @page > 1 &&
-                    "bg-purple-500 text-white hover:bg-purple-600"
+                    "bg-primary text-primary-content hover:bg-primary/90"
                 ]}
               >
                 ← Previous
               </button>
-              <div class="px-4 py-2 bg-white/5 rounded-lg text-white">
+              <div class="px-4 py-2 bg-base-200/50 rounded-lg text-base-content">
                 Page {@page} of {@total_pages}
               </div>
               <button
@@ -158,9 +158,9 @@ defmodule DdbmWeb.TransactionsLive do
                 class={[
                   "px-4 py-2 rounded-lg font-medium transition-all",
                   @page == @total_pages &&
-                    "bg-white/5 text-gray-500 cursor-not-allowed",
+                    "bg-base-200/50 text-base-content/50 cursor-not-allowed",
                   @page < @total_pages &&
-                    "bg-purple-500 text-white hover:bg-purple-600"
+                    "bg-primary text-primary-content hover:bg-primary/90"
                 ]}
               >
                 Next →

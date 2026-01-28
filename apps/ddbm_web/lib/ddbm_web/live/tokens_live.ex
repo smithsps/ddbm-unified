@@ -59,11 +59,11 @@ defmodule DdbmWeb.TokensLive do
     ~H"""
     <Layouts.app flash={@flash} current_user={@current_user}>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-white mb-8">Tokens & Leaderboards</h1>
+        <h1 class="text-3xl font-bold text-base-content mb-8">Tokens & Leaderboards</h1>
 
         <%!-- Token Balance Overview --%>
         <div class="mb-8">
-          <h2 class="text-xl font-semibold text-white mb-4">Your Balances</h2>
+          <h2 class="text-xl font-semibold text-base-content mb-4">Your Balances</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <.token_balance_card
               :for={token <- @all_tokens}
@@ -75,7 +75,7 @@ defmodule DdbmWeb.TokensLive do
 
         <%!-- Leaderboard Section --%>
         <div>
-          <h2 class="text-xl font-semibold text-white mb-4">Leaderboards</h2>
+          <h2 class="text-xl font-semibold text-base-content mb-4">Leaderboards</h2>
 
           <%!-- Token Tabs --%>
           <div class="mb-6 flex gap-2 flex-wrap">
@@ -86,9 +86,9 @@ defmodule DdbmWeb.TokensLive do
               class={[
                 "px-4 py-2 rounded-lg font-medium transition-all",
                 @selected_token == token.id &&
-                  "bg-purple-500 text-white shadow-lg shadow-purple-500/50",
+                  "bg-primary text-primary-content shadow-lg shadow-primary/50",
                 @selected_token != token.id &&
-                  "bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10"
+                  "bg-base-200/50 text-base-content/80 hover:bg-base-200 border border-base-300"
               ]}
             >
               {token.name}
@@ -97,24 +97,24 @@ defmodule DdbmWeb.TokensLive do
 
           <%!-- User's Rank Card --%>
           <%= if @user_rank do %>
-            <div class="mb-6 p-4 rounded-lg bg-purple-500/20 border border-purple-500/40">
+            <div class="mb-6 p-4 rounded-lg bg-primary/20 border border-primary/40">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <.user_avatar user={@current_user} size="sm" />
                   <div>
-                    <p class="text-sm text-gray-400">Your Rank</p>
-                    <p class="font-bold text-purple-300">#{@user_rank.rank}</p>
+                    <p class="text-sm text-base-content/60">Your Rank</p>
+                    <p class="font-bold text-primary">#{@user_rank.rank}</p>
                   </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-sm text-gray-400">Your Total</p>
-                  <p class="text-2xl font-bold text-purple-300">{@user_rank.total}</p>
+                  <p class="text-sm text-base-content/60">Your Total</p>
+                  <p class="text-2xl font-bold text-primary">{@user_rank.total}</p>
                 </div>
               </div>
             </div>
           <% else %>
-            <div class="mb-6 p-4 rounded-lg bg-white/5 border border-white/10">
-              <p class="text-center text-gray-400">
+            <div class="mb-6 p-4 rounded-lg bg-base-200/50 border border-base-300">
+              <p class="text-center text-base-content/60">
                 You haven't received any {Token.get(@selected_token).plural} yet.
               </p>
             </div>
@@ -122,9 +122,9 @@ defmodule DdbmWeb.TokensLive do
 
           <%!-- Leaderboard Table --%>
           <%= if @leaderboard == [] do %>
-            <div class="p-12 text-center rounded-lg bg-white/5 border border-white/10">
+            <div class="p-12 text-center rounded-lg bg-base-200/50 border border-base-300">
               <div class="text-6xl mb-4">🏆</div>
-              <p class="text-gray-400">No leaderboard data yet</p>
+              <p class="text-base-content/60">No leaderboard data yet</p>
             </div>
           <% else %>
             <.leaderboard_table

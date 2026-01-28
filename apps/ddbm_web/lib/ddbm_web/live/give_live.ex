@@ -149,12 +149,12 @@ defmodule DdbmWeb.GiveLive do
     ~H"""
     <Layouts.app flash={@flash} current_user={@current_user}>
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-white mb-8">Give Tokens</h1>
+        <h1 class="text-3xl font-bold text-base-content mb-8">Give Tokens</h1>
 
         <div class="space-y-6">
           <%!-- Token Selection --%>
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-3">
+            <label class="block text-sm font-medium text-base-content/80 mb-3">
               Select Token Type
             </label>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -166,26 +166,26 @@ defmodule DdbmWeb.GiveLive do
                 class={[
                   "p-4 rounded-lg text-left transition-all",
                   @selected_token == token.id &&
-                    "bg-purple-500 border-2 border-purple-400 shadow-lg shadow-purple-500/50",
+                    "bg-primary border-2 border-primary shadow-lg shadow-primary/50",
                   @selected_token != token.id &&
-                    "bg-white/5 border-2 border-white/10 hover:bg-white/10"
+                    "bg-base-200/50 border-2 border-base-300 hover:bg-base-200"
                 ]}
               >
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-2xl">{String.first(token.name)}</span>
                   <%= if @selected_token == token.id do %>
-                    <span class="text-green-400">✓</span>
+                    <span class="text-success">✓</span>
                   <% end %>
                 </div>
-                <div class="font-medium text-white">{token.name}</div>
+                <div class="font-medium text-base-content">{token.name}</div>
               </button>
             </div>
           </div>
 
           <%!-- Rate Limit Display --%>
           <%= if @rate_limits do %>
-            <div class="p-6 rounded-lg bg-white/5 border border-white/10">
-              <h3 class="text-lg font-semibold text-white mb-4">Rate Limits</h3>
+            <div class="p-6 rounded-lg bg-base-200/50 border border-base-300">
+              <h3 class="text-lg font-semibold text-base-content mb-4">Rate Limits</h3>
               <div class="space-y-4">
                 <%= if @rate_limits.daily_limit do %>
                   <.rate_limit_indicator
@@ -209,7 +209,7 @@ defmodule DdbmWeb.GiveLive do
 
           <%!-- User Search --%>
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-3">
+            <label class="block text-sm font-medium text-base-content/80 mb-3">
               Search for User
             </label>
             <div class="relative">
@@ -219,23 +219,23 @@ defmodule DdbmWeb.GiveLive do
                 phx-debounce="300"
                 value={@search_query}
                 placeholder="Type username to search..."
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full px-4 py-3 rounded-lg bg-base-200/50 border border-base-300 text-base-content placeholder-base-content/50 focus:outline-none focus:ring-2 focus:ring-primary"
               />
 
               <%!-- Search Results Dropdown --%>
               <%= if @showing_results && @search_results != [] do %>
-                <div class="absolute z-10 w-full mt-2 rounded-lg bg-gray-900 border border-white/20 shadow-xl max-h-64 overflow-y-auto">
+                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-200 border border-base-300 shadow-xl max-h-64 overflow-y-auto">
                   <button
                     :for={user <- @search_results}
                     type="button"
                     phx-click="select_user"
                     phx-value-user_id={user.id}
-                    class="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors text-left"
+                    class="w-full px-4 py-3 flex items-center gap-3 hover:bg-base-300 transition-colors text-left"
                   >
                     <.user_avatar user={user} size="sm" />
                     <div>
-                      <div class="font-medium text-white">{user.discord_username}</div>
-                      <div class="text-sm text-gray-400">Discord ID: {user.discord_id}</div>
+                      <div class="font-medium text-base-content">{user.discord_username}</div>
+                      <div class="text-sm text-base-content/60">Discord ID: {user.discord_id}</div>
                     </div>
                   </button>
                 </div>
@@ -243,7 +243,7 @@ defmodule DdbmWeb.GiveLive do
 
               <%!-- No Results Message --%>
               <%= if @showing_results && @search_results == [] && String.length(@search_query) >= 2 do %>
-                <div class="absolute z-10 w-full mt-2 rounded-lg bg-gray-900 border border-white/20 shadow-xl p-4 text-center text-gray-400">
+                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-200 border border-base-300 shadow-xl p-4 text-center text-base-content/60">
                   No users found matching "{@search_query}"
                 </div>
               <% end %>
@@ -251,18 +251,18 @@ defmodule DdbmWeb.GiveLive do
 
             <%!-- Selected User Display --%>
             <%= if @selected_user do %>
-              <div class="mt-4 p-4 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-between">
+              <div class="mt-4 p-4 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <.user_avatar user={@selected_user} size="md" />
                   <div>
-                    <div class="font-medium text-white">{@selected_user.discord_username}</div>
-                    <div class="text-sm text-gray-400">Ready to receive token</div>
+                    <div class="font-medium text-base-content">{@selected_user.discord_username}</div>
+                    <div class="text-sm text-base-content/60">Ready to receive token</div>
                   </div>
                 </div>
                 <button
                   type="button"
                   phx-click="clear_user"
-                  class="text-gray-400 hover:text-white transition-colors"
+                  class="text-base-content/60 hover:text-base-content transition-colors"
                 >
                   <.icon name="hero-x-mark" class="w-5 h-5" />
                 </button>
@@ -278,9 +278,9 @@ defmodule DdbmWeb.GiveLive do
             class={[
               "w-full py-4 rounded-lg font-bold text-lg transition-all",
               @selected_user && @rate_limits.can_give &&
-                "bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 shadow-lg hover:shadow-xl",
+                "bg-gradient-to-r from-primary to-secondary text-primary-content hover:opacity-90 shadow-lg hover:shadow-xl",
               (!@selected_user || !@rate_limits.can_give) &&
-                "bg-gray-700 text-gray-500 cursor-not-allowed"
+                "bg-base-300 text-base-content/50 cursor-not-allowed"
             ]}
           >
             <%= cond do %>
@@ -294,12 +294,12 @@ defmodule DdbmWeb.GiveLive do
           </button>
 
           <%!-- Help Text --%>
-          <div class="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div class="p-4 rounded-lg bg-info/10 border border-info/20">
             <div class="flex gap-3">
               <div class="text-2xl">💡</div>
-              <div class="text-sm text-gray-300">
+              <div class="text-sm text-base-content/80">
                 <p class="font-medium mb-1">How it works:</p>
-                <ul class="list-disc list-inside space-y-1 text-gray-400">
+                <ul class="list-disc list-inside space-y-1 text-base-content/60">
                   <li>Select the token type you want to give</li>
                   <li>Search for a user by their Discord username</li>
                   <li>Check that you haven't reached your rate limit</li>
