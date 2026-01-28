@@ -33,6 +33,16 @@
                 ln -sf ${pkgs.esbuild}/bin/esbuild $out/bin/esbuild
               '';
             });
+
+            # Provide SQLite library and skip artifact downloads
+            exqlite = prev.exqlite.overrideAttrs (old: {
+              buildInputs = (old.buildInputs or []) ++ [ pkgs.sqlite ];
+              # Skip downloading pre-compiled binaries and compile from source
+              preConfigure = (old.preConfigure or "") + ''
+                export EXQLITE_SKIP_DOWNLOAD_NIFS=1
+                export HOME=$(mktemp -d)
+              '';
+            });
           });
         };
       in
