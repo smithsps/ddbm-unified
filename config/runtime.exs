@@ -60,6 +60,7 @@ if config_env() == :prod do
     env["SECRET_KEY_BASE"] || System.get_env("SECRET_KEY_BASE")
 
   config :ddbm_web, DdbmWeb.Endpoint,
+    url: [host: "ddbm.smnth.net", port: 443, scheme: "https"],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
