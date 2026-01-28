@@ -6,6 +6,7 @@ defmodule DdbmWeb.TokenComponents do
   use Phoenix.Component
 
   alias Ddbm.Tokens.Token
+  alias Ddbm.Discord
 
   @doc """
   Displays a token badge with emoji and amount.
@@ -52,11 +53,17 @@ defmodule DdbmWeb.TokenComponents do
 
   def transaction_row(assigns) do
     token_def = Token.get(assigns.transaction.token)
+    guild_id = Application.get_env(:ddbm_discord, :guild_id)
+
+    sender_name = Discord.get_display_name(assigns.transaction.sender_user_id, guild_id)
+    receiver_name = Discord.get_display_name(assigns.transaction.user_id, guild_id)
 
     assigns =
       assigns
       |> assign(:token_name, Token.display_name(token_def, assigns.transaction.amount))
       |> assign(:is_received, assigns.transaction.user_id == assigns.current_user_id)
+      |> assign(:sender_name, sender_name)
+      |> assign(:receiver_name, receiver_name)
 
     ~H"""
     <div
@@ -73,10 +80,10 @@ defmodule DdbmWeb.TokenComponents do
           <div class="font-medium">
             <%= if @is_received do %>
               <span class="text-green-400">+{@transaction.amount}</span> from
-              <span class="text-purple-300">{@transaction.sender_user_id}</span>
+              <span class="text-purple-300">{@sender_name}</span>
             <% else %>
               <span class="text-blue-400">-{@transaction.amount}</span> to
-              <span class="text-purple-300">{@transaction.user_id}</span>
+              <span class="text-purple-300">{@receiver_name}</span>
             <% end %>
           </div>
           <div class="text-sm text-gray-400">
@@ -183,7 +190,18 @@ defmodule DdbmWeb.TokenComponents do
 
   def leaderboard_table(assigns) do
     token_def = Token.get(assigns.token)
-    assigns = assign(assigns, :token_def, token_def)
+    guild_id = Application.get_env(:ddbm_discord, :guild_id)
+
+    # Enhance entries with display names
+    entries_with_names =
+      Enum.map(assigns.entries, fn entry ->
+        Map.put(entry, :display_name, Discord.get_display_name(entry.user_id, guild_id))
+      end)
+
+    assigns =
+      assigns
+      |> assign(:token_def, token_def)
+      |> assign(:entries_with_names, entries_with_names)
 
     ~H"""
     <div class={["overflow-hidden rounded-lg border border-white/10", @class]}>
@@ -203,7 +221,7 @@ defmodule DdbmWeb.TokenComponents do
         </thead>
         <tbody class="divide-y divide-white/10">
           <tr
-            :for={{entry, index} <- Enum.with_index(@entries, 1)}
+            :for={{entry, index} <- Enum.with_index(@entries_with_names, 1)}
             class={[
               "hover:bg-white/5 transition-colors",
               entry.user_id == @current_user_id && "bg-purple-500/10"
@@ -229,13 +247,13 @@ defmodule DdbmWeb.TokenComponents do
                   "w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500",
                   "flex items-center justify-center text-white font-bold text-sm"
                 ]}>
-                  {String.first(entry.user_id)}
+                  {String.first(entry.display_name)}
                 </div>
                 <span class={[
                   "font-medium",
                   entry.user_id == @current_user_id && "text-purple-300"
                 ]}>
-                  {entry.user_id}
+                  {entry.display_name}
                   <%= if entry.user_id == @current_user_id do %>
                     <span class="ml-2 text-xs text-purple-400">(You)</span>
                   <% end %>

@@ -11,7 +11,8 @@ defmodule DdbmDiscord.Application do
 
         [
           DdbmDiscord.Consumer,
-          DdbmDiscord.CommandSyncer
+          DdbmDiscord.CommandSyncer,
+          DdbmDiscord.MemberCache
         ]
       else
         []

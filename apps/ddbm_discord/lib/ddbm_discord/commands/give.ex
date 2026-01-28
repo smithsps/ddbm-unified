@@ -7,7 +7,9 @@ defmodule DdbmDiscord.Commands.Give do
 
   alias Ddbm.Tokens
   alias Ddbm.Tokens.Token
+  alias Ddbm.Discord
   alias DdbmDiscord.Helpers.Interaction, as: Helper
+  alias Nostrum.Api.Guild
 
   def execute(interaction) do
     sender_id = to_string(interaction.member.user_id)
@@ -53,6 +55,9 @@ defmodule DdbmDiscord.Commands.Give do
   end
 
   defp create_transaction(interaction, sender_id, target_user_id, token) do
+    # Cache the target user info
+    cache_target_user(interaction, target_user_id)
+
     attrs = %{
       user_id: target_user_id,
       sender_user_id: sender_id,
@@ -79,6 +84,29 @@ defmodule DdbmDiscord.Commands.Give do
       {:error, changeset} ->
         Logger.error("Failed to create transaction: #{inspect(changeset)}")
         Helper.reply_ephemeral(interaction, "There was an unexpected error and your token was not given.")
+    end
+  end
+
+  defp cache_target_user(interaction, target_user_id) do
+    if interaction.guild_id do
+      # Fetch the target user's guild member info and cache it
+      case Guild.member(interaction.guild_id, String.to_integer(target_user_id)) do
+        {:ok, member} ->
+          attrs = %{
+            discord_id: to_string(member.user.id),
+            username: member.user.username,
+            discriminator: member.user.discriminator,
+            display_name: member.nick || member.user.global_name,
+            avatar: member.user.avatar,
+            guild_id: to_string(interaction.guild_id)
+          }
+
+          Discord.upsert_member(attrs)
+
+        {:error, _error} ->
+          # Silently fail - member cache is not critical
+          :ok
+      end
     end
   end
 end
