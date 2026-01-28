@@ -192,10 +192,11 @@ defmodule DdbmWeb.TokenComponents do
     token_def = Token.get(assigns.token)
     guild_id = Application.get_env(:ddbm_discord, :guild_id)
 
-    # Enhance entries with display names
+    # Use ETS-cached lookups
     entries_with_names =
       Enum.map(assigns.entries, fn entry ->
-        Map.put(entry, :display_name, Discord.get_display_name(entry.user_id, guild_id))
+        display_name = Discord.get_display_name(entry.user_id, guild_id)
+        Map.put(entry, :display_name, display_name)
       end)
 
     assigns =

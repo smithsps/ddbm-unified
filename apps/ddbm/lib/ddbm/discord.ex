@@ -16,48 +16,41 @@ defmodule Ddbm.Discord do
   end
 
   @doc """
-  Gets display name for a Discord user, with fallback to ID.
+  Gets display name for a Discord user, with ETS cache and database fallback.
   Tries: display_name > username#discriminator > username > discord_id
   """
   def get_display_name(discord_id, guild_id) do
-    case get_member(discord_id, guild_id) do
-      nil ->
-        to_string(discord_id)
-
-      member ->
-        cond do
-          member.display_name && member.display_name != "" ->
-            member.display_name
-
-          member.discriminator && member.discriminator != "0" ->
-            "#{member.username}##{member.discriminator}"
-
-          member.username ->
-            member.username
-
-          true ->
-            to_string(discord_id)
-        end
-    end
+    Ddbm.Discord.MemberCache.get_display_name(discord_id, guild_id)
   end
 
   @doc """
-  Upserts a Discord member into the cache.
+  Upserts a Discord member into the database and ETS cache.
   """
   def upsert_member(attrs) do
     discord_id = to_string(attrs.discord_id || attrs[:discord_id])
     guild_id = to_string(attrs.guild_id || attrs[:guild_id])
 
-    case get_member(discord_id, guild_id) do
-      nil ->
-        %Member{}
-        |> Member.changeset(attrs)
-        |> Repo.insert()
+    result =
+      case get_member(discord_id, guild_id) do
+        nil ->
+          %Member{}
+          |> Member.changeset(attrs)
+          |> Repo.insert()
 
-      member ->
-        member
-        |> Member.changeset(attrs)
-        |> Repo.update()
+        member ->
+          member
+          |> Member.changeset(attrs)
+          |> Repo.update()
+      end
+
+    # Update ETS cache on success
+    case result do
+      {:ok, member} ->
+        Ddbm.Discord.MemberCache.put_member(member)
+        {:ok, member}
+
+      error ->
+        error
     end
   end
 
@@ -78,13 +71,17 @@ defmodule Ddbm.Discord do
   end
 
   @doc """
-  Deletes all cached members for a guild.
+  Deletes all cached members for a guild from database and ETS cache.
   Useful for refreshing the cache.
   """
   def delete_guild_members(guild_id) do
-    Member
-    |> where([m], m.guild_id == ^to_string(guild_id))
-    |> Repo.delete_all()
+    result =
+      Member
+      |> where([m], m.guild_id == ^to_string(guild_id))
+      |> Repo.delete_all()
+
+    Ddbm.Discord.MemberCache.clear_guild(guild_id)
+    result
   end
 
   @doc """
@@ -95,4 +92,5 @@ defmodule Ddbm.Discord do
     |> where([m], m.guild_id == ^to_string(guild_id))
     |> Repo.aggregate(:count)
   end
+
 end
