@@ -52,14 +52,15 @@ defmodule DdbmDiscord.Consumer do
   end
 
   defp cache_interaction_user(interaction) do
-    if interaction.member && interaction.member.user && interaction.guild_id do
-      user = interaction.member.user
+    if interaction.user && interaction.guild_id do
+      user = interaction.user
+      member = interaction.member
 
       attrs = %{
         discord_id: to_string(user.id),
         username: user.username,
         discriminator: user.discriminator,
-        display_name: interaction.member.nick || user.global_name,
+        display_name: (member && member.nick) || user.global_name,
         avatar: user.avatar,
         guild_id: to_string(interaction.guild_id)
       }
