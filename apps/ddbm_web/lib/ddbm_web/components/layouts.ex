@@ -50,9 +50,9 @@ defmodule DdbmWeb.Layouts do
               <%!-- Navigation Links (Desktop) --%>
               <div class="hidden md:flex items-center gap-1">
                 <.nav_link navigate="/dashboard" icon="hero-home">Dashboard</.nav_link>
-                <.nav_link navigate="/tokens" icon="hero-trophy">Tokens</.nav_link>
-                <.nav_link navigate="/transactions" icon="hero-list-bullet">Transactions</.nav_link>
-                <.nav_link navigate="/give" icon="hero-gift">Give</.nav_link>
+                <.nav_link navigate="/tokens/leaderboard" icon="hero-trophy">Leaderboard</.nav_link>
+                <.nav_link navigate="/tokens/log" icon="hero-list-bullet">Log</.nav_link>
+                <.nav_link navigate="/tokens/give" icon="hero-gift">Give</.nav_link>
               </div>
             </div>
 
@@ -93,9 +93,9 @@ defmodule DdbmWeb.Layouts do
           <div class="md:hidden pt-3 pb-3">
             <div class="flex flex-col gap-1">
               <.nav_link navigate="/dashboard" icon="hero-home">Dashboard</.nav_link>
-              <.nav_link navigate="/tokens" icon="hero-trophy">Tokens</.nav_link>
-              <.nav_link navigate="/transactions" icon="hero-list-bullet">Transactions</.nav_link>
-              <.nav_link navigate="/give" icon="hero-gift">Give</.nav_link>
+              <.nav_link navigate="/tokens/leaderboard" icon="hero-trophy">Leaderboard</.nav_link>
+              <.nav_link navigate="/tokens/log" icon="hero-list-bullet">Log</.nav_link>
+              <.nav_link navigate="/tokens/give" icon="hero-gift">Give</.nav_link>
             </div>
           </div>
         </nav>

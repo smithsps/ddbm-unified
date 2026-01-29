@@ -84,7 +84,7 @@ defmodule DdbmWeb.DashboardLive do
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold text-base-content">Recent Activity</h2>
             <.link
-              navigate={~p"/transactions"}
+              navigate={~p"/tokens/log"}
               class="text-sm text-primary hover:text-primary/80"
             >
               View all →

@@ -1,4 +1,4 @@
-defmodule DdbmWeb.TokensLive do
+defmodule DdbmWeb.LeaderboardLive do
   use DdbmWeb, :live_view
 
   alias Ddbm.Tokens
@@ -27,7 +27,7 @@ defmodule DdbmWeb.TokensLive do
 
       socket =
         socket
-        |> assign(:page_title, "Tokens & Leaderboards")
+        |> assign(:page_title, "Leaderboard")
         |> assign(:balances, balances)
         |> assign(:all_tokens, all_tokens)
         |> assign(:selected_token, selected_token)
@@ -59,7 +59,7 @@ defmodule DdbmWeb.TokensLive do
     ~H"""
     <Layouts.app flash={@flash} current_user={@current_user}>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-base-content mb-8">Tokens & Leaderboards</h1>
+        <h1 class="text-3xl font-bold text-base-content mb-8">Leaderboard</h1>
 
         <%!-- Token Balance Overview --%>
         <div class="mb-8">

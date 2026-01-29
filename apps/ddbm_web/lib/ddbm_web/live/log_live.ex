@@ -1,4 +1,4 @@
-defmodule DdbmWeb.TransactionsLive do
+defmodule DdbmWeb.LogLive do
   use DdbmWeb, :live_view
 
   alias Ddbm.Tokens
@@ -12,7 +12,7 @@ defmodule DdbmWeb.TransactionsLive do
     if current_user do
       socket =
         socket
-        |> assign(:page_title, "Transaction History")
+        |> assign(:page_title, "Log")
         |> assign(:page, 1)
         |> assign(:per_page, 20)
         |> assign(:filter_token, nil)
@@ -102,9 +102,9 @@ defmodule DdbmWeb.TransactionsLive do
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold text-base-content mb-8">
           <%= if @view_mode == :my_transactions do %>
-            My Transaction History
+            My Token Log
           <% else %>
-            All Transactions
+            All Token Activity
           <% end %>
         </h1>
 

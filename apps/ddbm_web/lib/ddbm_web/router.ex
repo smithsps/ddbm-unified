@@ -47,9 +47,9 @@ defmodule DdbmWeb.Router do
     live_session :authenticated,
       on_mount: [{DdbmWeb.UserAuth, :require_authenticated_user}] do
       live "/dashboard", DashboardLive, :index
-      live "/tokens", TokensLive, :index
-      live "/transactions", TransactionsLive, :index
-      live "/give", GiveLive, :index
+      live "/tokens/leaderboard", LeaderboardLive, :index
+      live "/tokens/log", LogLive, :index
+      live "/tokens/give", GiveLive, :index
     end
   end
 
