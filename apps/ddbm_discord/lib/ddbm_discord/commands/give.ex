@@ -9,6 +9,7 @@ defmodule DdbmDiscord.Commands.Give do
   alias Ddbm.Tokens.Token
   alias Ddbm.Discord
   alias DdbmDiscord.Helpers.Interaction, as: Helper
+  alias Nostrum.Cache.UserCache
   alias Nostrum.Api.Guild
 
   def execute(interaction) do
@@ -89,23 +90,60 @@ defmodule DdbmDiscord.Commands.Give do
 
   defp cache_target_user(interaction, target_user_id) do
     if interaction.guild_id do
-      # Fetch the target user's guild member info and cache it
-      case Guild.member(interaction.guild_id, String.to_integer(target_user_id)) do
-        {:ok, member} ->
-          attrs = %{
-            discord_id: to_string(member.user.id),
-            username: member.user.username,
-            discriminator: member.user.discriminator,
-            display_name: member.nick || member.user.global_name,
-            avatar: member.user.avatar,
-            guild_id: to_string(interaction.guild_id)
-          }
+      user_id = String.to_integer(target_user_id)
 
-          Discord.upsert_member(attrs)
+      # Try UserCache first (fast path)
+      case UserCache.get(user_id) do
+        {:ok, user} ->
+          # Got user from cache, now fetch guild member for nickname
+          case Guild.member(interaction.guild_id, user_id) do
+            {:ok, member} ->
+              attrs = %{
+                discord_id: to_string(user.id),
+                username: user.username,
+                discriminator: user.discriminator,
+                display_name: member.nick || user.global_name,
+                avatar: user.avatar,
+                guild_id: to_string(interaction.guild_id)
+              }
 
-        {:error, _error} ->
-          # Silently fail - member cache is not critical
-          :ok
+              Discord.upsert_member(attrs)
+
+            {:error, _} ->
+              # Could not fetch member, use user data without nickname
+              attrs = %{
+                discord_id: to_string(user.id),
+                username: user.username,
+                discriminator: user.discriminator,
+                display_name: user.global_name,
+                avatar: user.avatar,
+                guild_id: to_string(interaction.guild_id)
+              }
+
+              Discord.upsert_member(attrs)
+          end
+
+        {:error, _} ->
+          # User not in cache, fetch full member from API
+          case Guild.member(interaction.guild_id, user_id) do
+            {:ok, member} ->
+              user = member.user
+
+              attrs = %{
+                discord_id: to_string(user.id),
+                username: user.username,
+                discriminator: user.discriminator,
+                display_name: member.nick || user.global_name,
+                avatar: user.avatar,
+                guild_id: to_string(interaction.guild_id)
+              }
+
+              Discord.upsert_member(attrs)
+
+            {:error, _} ->
+              # Silently fail - member cache is not critical
+              :ok
+          end
       end
     end
   end
