@@ -3,13 +3,14 @@ defmodule Ddbm.Tokens.Token do
   Defines token types and their rate limits.
   """
 
-  defstruct [:id, :name, :plural, :limits]
+  defstruct [:id, :name, :plural, :icon, :limits]
 
   @type limit :: %{daily: non_neg_integer() | nil, weekly: non_neg_integer() | nil}
   @type t :: %__MODULE__{
           id: String.t(),
           name: String.t(),
           plural: String.t(),
+          icon: String.t(),
           limits: limit()
         }
 
@@ -21,26 +22,30 @@ defmodule Ddbm.Tokens.Token do
     [
       %__MODULE__{
         id: "carry",
-        name: "⚔️ Carry Token",
-        plural: "⚔️ Carry Tokens",
+        name: "Carry Token",
+        plural: "Carry Tokens",
+        icon: "⚔️",
         limits: %{daily: 3, weekly: nil}
       },
       %__MODULE__{
         id: "leader",
-        name: "👑 Leader Token",
-        plural: "👑 Leader Tokens",
+        name: "Leader Token",
+        plural: "Leader Tokens",
+        icon: "👑",
         limits: %{daily: 1, weekly: 3}
       },
       %__MODULE__{
         id: "streamer",
-        name: "📺 Streamer Token",
-        plural: "📺 Streamer Tokens",
+        name: "Streamer Token",
+        plural: "Streamer Tokens",
+        icon: "📺",
         limits: %{daily: 3, weekly: nil}
       },
       %__MODULE__{
         id: "toxic",
-        name: "☣ Toxic Token",
-        plural: "☣ Toxic Tokens",
+        name: "Toxic Token",
+        plural: "Toxic Tokens",
+        icon: "☣",
         limits: %{daily: 1, weekly: 3}
       }
     ]

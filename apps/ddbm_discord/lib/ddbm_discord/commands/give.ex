@@ -72,13 +72,13 @@ defmodule DdbmDiscord.Commands.Give do
 
         Helper.reply_ephemeral(
           interaction,
-          "Gave a #{token.name} to <@#{target_user_id}>"
+          "Gave a #{token.icon} #{token.name} to <@#{target_user_id}>"
         )
 
         # Notify the bot channel
         Helper.notify_bot_channel(
           interaction.guild_id,
-          "<@#{sender_id}> gave <@#{target_user_id}> a #{token.name}!"
+          "<@#{sender_id}> gave <@#{target_user_id}> a #{token.icon} #{token.name}!"
         )
 
       {:error, changeset} ->

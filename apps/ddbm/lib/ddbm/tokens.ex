@@ -80,6 +80,48 @@ defmodule Ddbm.Tokens do
   end
 
   @doc """
+  Gets all transactions with pagination and optional filters.
+
+  Options:
+    - :page - Page number (default: 1)
+    - :per_page - Items per page (default: 20)
+    - :token - Filter by token type (optional)
+
+  Returns a map with :entries, :total_count, :page, :per_page, and :total_pages.
+  """
+  def get_all_transactions(opts) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 20)
+    token_filter = Keyword.get(opts, :token)
+
+    query = from(t in Transaction)
+
+    query =
+      if token_filter do
+        where(query, [t], t.token == ^token_filter)
+      else
+        query
+      end
+
+    total_count = Repo.aggregate(query, :count)
+
+    entries =
+      query
+      |> order_by([t], desc: t.inserted_at)
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      total_count: total_count,
+      page: page,
+      per_page: per_page,
+      total_pages: ceil(total_count / per_page)
+    }
+  end
+
+  @doc """
   Gets transactions sent by a user for a specific token type since a given datetime.
   Used for rate limit checking.
   """

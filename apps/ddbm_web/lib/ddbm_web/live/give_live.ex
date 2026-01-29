@@ -172,7 +172,7 @@ defmodule DdbmWeb.GiveLive do
                 ]}
               >
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-2xl">{String.first(token.name)}</span>
+                  <span class="text-2xl">{token.icon}</span>
                   <%= if @selected_token == token.id do %>
                     <span class="text-success">✓</span>
                   <% end %>

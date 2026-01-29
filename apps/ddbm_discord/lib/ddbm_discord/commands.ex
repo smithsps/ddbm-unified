@@ -108,7 +108,7 @@ defmodule DdbmDiscord.Commands do
   defp token_choices do
     Token.all()
     |> Enum.map(fn token ->
-      %{name: token.name, value: token.id}
+      %{name: "#{token.icon} #{token.name}", value: token.id}
     end)
   end
 end

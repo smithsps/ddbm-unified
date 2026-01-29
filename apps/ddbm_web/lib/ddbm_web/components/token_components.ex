@@ -23,7 +23,7 @@ defmodule DdbmWeb.TokenComponents do
 
   def token_badge(assigns) do
     token_def = Token.get(assigns.token)
-    assigns = assign(assigns, :token_name, Token.display_name(token_def, assigns.amount))
+    assigns = assign(assigns, :token_def, token_def)
 
     ~H"""
     <span class={[
@@ -31,7 +31,7 @@ defmodule DdbmWeb.TokenComponents do
       "bg-primary/10 text-sm font-medium",
       @class
     ]}>
-      <span class="text-lg">{String.first(@token_name)}</span>
+      <span class="text-lg">{@token_def.icon}</span>
       <span>{@amount}</span>
     </span>
     """
@@ -57,10 +57,17 @@ defmodule DdbmWeb.TokenComponents do
     sender_name = Discord.get_display_name(assigns.transaction.sender_user_id, guild_id)
     receiver_name = Discord.get_display_name(assigns.transaction.user_id, guild_id)
 
+    is_received = assigns.transaction.user_id == assigns.current_user_id
+    is_sent = assigns.transaction.sender_user_id == assigns.current_user_id
+    is_third_party = !is_received && !is_sent
+
     assigns =
       assigns
+      |> assign(:token_def, token_def)
       |> assign(:token_name, Token.display_name(token_def, assigns.transaction.amount))
-      |> assign(:is_received, assigns.transaction.user_id == assigns.current_user_id)
+      |> assign(:is_received, is_received)
+      |> assign(:is_sent, is_sent)
+      |> assign(:is_third_party, is_third_party)
       |> assign(:sender_name, sender_name)
       |> assign(:receiver_name, receiver_name)
 
@@ -74,15 +81,33 @@ defmodule DdbmWeb.TokenComponents do
       ]}
     >
       <div class="flex items-center gap-4">
-        <div class="text-2xl">{String.first(@token_name)}</div>
+        <div class="text-2xl">{@token_def.icon}</div>
         <div>
           <div class="font-medium">
-            <%= if @is_received do %>
-              <span class="text-success">+{@transaction.amount}</span> from
-              <span class="text-primary">{@sender_name}</span>
-            <% else %>
-              <span class="text-info">-{@transaction.amount}</span> to
-              <span class="text-primary">{@receiver_name}</span>
+            <%= cond do %>
+              <% @is_received -> %>
+                <span class="text-primary">{@sender_name}</span> gave you
+                <%= if @transaction.amount == 1 do %>
+                  a <span class="text-success">{@token_name}</span>
+                <% else %>
+                  <span class="text-success">{@transaction.amount} {@token_name}</span>
+                <% end %>
+              <% @is_sent -> %>
+                You gave
+                <%= if @transaction.amount == 1 do %>
+                  a <span class="text-info">{@token_name}</span>
+                <% else %>
+                  <span class="text-info">{@transaction.amount} {@token_name}</span>
+                <% end %>
+                to <span class="text-primary">{@receiver_name}</span>
+              <% @is_third_party -> %>
+                <span class="text-primary">{@sender_name}</span> gave
+                <%= if @transaction.amount == 1 do %>
+                  a <span class="text-base-content/80">{@token_name}</span>
+                <% else %>
+                  <span class="text-base-content/80">{@transaction.amount} {@token_name}</span>
+                <% end %>
+                to <span class="text-primary">{@receiver_name}</span>
             <% end %>
           </div>
           <div class="text-sm text-base-content/60">
@@ -90,7 +115,6 @@ defmodule DdbmWeb.TokenComponents do
           </div>
         </div>
       </div>
-      <div class="text-xs text-base-content/50">{@transaction.source}</div>
     </div>
     """
   end
@@ -163,7 +187,7 @@ defmodule DdbmWeb.TokenComponents do
       @class
     ]}>
       <div class="tooltip tooltip-bottom flex items-center justify-between px-2" data-tip={[@token_def.name]}>
-        <span class="text-4xl">{String.first(@token_def.name)}</span>
+        <span class="text-4xl">{@token_def.icon}</span>
         <span class="text-3xl font-bold text-primary">{@balance}</span>
       </div>
     </div>
@@ -211,7 +235,7 @@ defmodule DdbmWeb.TokenComponents do
               User
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-base-content/60 uppercase tracking-wider">
-              {String.first(@token_def.name)} Total
+              {@token_def.icon} Total
             </th>
           </tr>
         </thead>
@@ -295,7 +319,7 @@ defmodule DdbmWeb.TokenComponents do
     <div class={["space-y-2", @class]}>
       <div class="flex items-center justify-between text-sm">
         <span class="text-base-content/60">
-          {String.first(@token_def.name)} {@period} limit
+          {@token_def.icon} {@period} limit
         </span>
         <span class={[
           "font-medium",
