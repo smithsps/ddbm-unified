@@ -1,6 +1,7 @@
 defmodule DdbmWeb.LeaderboardLive do
   use DdbmWeb, :live_view
 
+  alias Ddbm.Discord
   alias Ddbm.Tokens
   alias Ddbm.Tokens.Token
   import DdbmWeb.TokenComponents
@@ -78,47 +79,22 @@ defmodule DdbmWeb.LeaderboardLive do
           <h2 class="text-xl font-semibold text-base-content mb-4">Leaderboards</h2>
 
           <%!-- Token Tabs --%>
-          <div class="mb-6 flex gap-2 flex-wrap">
+          <div class="mb-6 flex flex-wrap join">
             <button
               :for={token <- @all_tokens}
               phx-click="select_token"
               phx-value-token={token.id}
               class={[
-                "px-4 py-2 rounded-lg font-medium transition-all shadow-sm",
+                "px-4 py-2 font-medium transition-all join-item",
                 @selected_token == token.id &&
-                  "bg-primary text-primary-content shadow-lg",
+                  "bg-primary text-primary-content",
                 @selected_token != token.id &&
-                  "bg-base-200 text-base-content hover:bg-base-300"
+                  "bg-base-100 text-base-content hover:bg-base-300"
               ]}
             >
-              {token.name}
+              {token.icon}
             </button>
           </div>
-
-          <%!-- User's Rank Card --%>
-          <%= if @user_rank do %>
-            <div class="mb-6 p-4 rounded-lg bg-base-200 shadow-sm border border-primary/20">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <.user_avatar user={@current_user} size="sm" />
-                  <div>
-                    <p class="text-sm text-base-content/60">Your Rank</p>
-                    <p class="font-bold text-primary">#{@user_rank.rank}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-sm text-base-content/60">Your Total</p>
-                  <p class="text-2xl font-bold text-primary">{@user_rank.total}</p>
-                </div>
-              </div>
-            </div>
-          <% else %>
-            <div class="mb-6 p-4 rounded-lg bg-base-100 shadow-sm">
-              <p class="text-center text-base-content/60">
-                You haven't received any {Token.get(@selected_token).plural} yet.
-              </p>
-            </div>
-          <% end %>
 
           <%!-- Leaderboard Table --%>
           <%= if @leaderboard == [] do %>
@@ -127,11 +103,91 @@ defmodule DdbmWeb.LeaderboardLive do
               <p class="text-base-content/60">No leaderboard data yet</p>
             </div>
           <% else %>
-            <.leaderboard_table
-              token={@selected_token}
-              entries={@leaderboard}
-              current_user_id={@current_user.discord_id}
-            />
+            <%
+              token_def = Token.get(@selected_token)
+              guild_id = Application.get_env(:ddbm_discord, :guild_id)
+
+              entries_with_names =
+                Enum.map(@leaderboard, fn entry ->
+                  display_name = Discord.get_display_name(entry.user_id, guild_id)
+                  avatar_url = Discord.get_avatar(entry.user_id, guild_id)
+
+                  entry
+                  |> Map.put(:display_name, display_name)
+                  |> Map.put(:avatar_url, avatar_url)
+                end)
+            %>
+            <div class="overflow-hidden rounded-lg bg-base-100 shadow-sm">
+              <table class="w-full">
+                <thead class="bg-base-300/30">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider">
+                      Rank
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-base-content/60 uppercase tracking-wider">
+                      {token_def.icon} Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-base-300/30">
+                  <tr
+                    :for={{entry, index} <- Enum.with_index(entries_with_names, 1)}
+                    class={[
+                      "hover:bg-base-200 transition-colors",
+                      entry.user_id == @current_user.discord_id && "bg-base-200"
+                    ]}
+                  >
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center gap-2">
+                        <%= cond do %>
+                          <% index == 1 -> %>
+                            <span class="text-2xl">🥇</span>
+                          <% index == 2 -> %>
+                            <span class="text-2xl">🥈</span>
+                          <% index == 3 -> %>
+                            <span class="text-2xl">🥉</span>
+                          <% true -> %>
+                            <span class="text-sm text-base-content/60">#{index}</span>
+                        <% end %>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center gap-3">
+                        <%= if entry.avatar_url do %>
+                          <img
+                            src={entry.avatar_url}
+                            alt={entry.display_name}
+                            class="w-8 h-8 rounded-full ring-2 ring-primary/30"
+                          />
+                        <% else %>
+                          <div class={[
+                            "w-8 h-8 rounded-full bg-primary",
+                            "flex items-center justify-center text-primary-content font-bold text-sm"
+                          ]}>
+                            {String.first(entry.display_name)}
+                          </div>
+                        <% end %>
+                        <span class={[
+                          "font-medium",
+                          entry.user_id == @current_user.discord_id && "text-primary"
+                        ]}>
+                          {entry.display_name}
+                          <%= if entry.user_id == @current_user.discord_id do %>
+                            <span class="ml-2 text-xs text-primary/80">(You)</span>
+                          <% end %>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <span class="text-lg font-bold text-base-content">{entry.total}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           <% end %>
         </div>
       </div>
