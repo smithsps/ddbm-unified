@@ -101,4 +101,39 @@ defmodule Ddbm.Discord do
     |> Repo.aggregate(:count)
   end
 
+  @doc """
+  Searches for Discord members by username or display name.
+  Returns up to 10 results ordered by username with avatar URLs.
+  """
+  def search_members(query, guild_id) when is_binary(query) do
+    search_pattern = "%#{query}%"
+
+    from(m in Member,
+      where: m.guild_id == ^to_string(guild_id),
+      where: like(m.username, ^search_pattern) or like(m.display_name, ^search_pattern),
+      order_by: [asc: m.username],
+      limit: 10
+    )
+    |> Repo.all()
+    |> Enum.map(&add_avatar_url/1)
+  end
+
+  def search_members(_query, _guild_id), do: []
+
+  @doc """
+  Adds avatar_url field to a Discord member.
+  """
+  def add_avatar_url(%Member{} = member) do
+    avatar_url =
+      if member.avatar do
+        "https://cdn.discordapp.com/avatars/#{member.discord_id}/#{member.avatar}.png"
+      else
+        # Default Discord avatar based on discriminator
+        discriminator = String.to_integer(member.discriminator || "0")
+        index = rem(discriminator, 5)
+        "https://cdn.discordapp.com/embed/avatars/#{index}.png"
+      end
+
+    Map.put(member, :avatar_url, avatar_url)
+  end
 end

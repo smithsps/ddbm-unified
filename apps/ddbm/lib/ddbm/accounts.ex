@@ -85,7 +85,7 @@ defmodule Ddbm.Accounts do
     search_pattern = "%#{query}%"
 
     from(u in User,
-      where: ilike(u.discord_username, ^search_pattern),
+      where: like(u.discord_username, ^search_pattern),
       order_by: [asc: u.discord_username],
       limit: 10
     )

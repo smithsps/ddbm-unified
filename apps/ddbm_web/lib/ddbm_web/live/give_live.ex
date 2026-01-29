@@ -1,7 +1,7 @@
 defmodule DdbmWeb.GiveLive do
   use DdbmWeb, :live_view
 
-  alias Ddbm.{Accounts, Tokens}
+  alias Ddbm.{Discord, Tokens}
   alias Ddbm.Tokens.Token
   import DdbmWeb.TokenComponents
 
@@ -42,9 +42,11 @@ defmodule DdbmWeb.GiveLive do
 
   @impl true
   def handle_event("search_users", %{"query" => query}, socket) do
+    guild_id = Application.get_env(:ddbm_discord, :guild_id)
+
     search_results =
-      if String.length(query) >= 2 do
-        Accounts.search_users_by_username(query)
+      if String.length(query) >= 2 and guild_id do
+        Discord.search_members(query, guild_id)
         |> Enum.reject(&(&1.discord_id == socket.assigns.current_user.discord_id))
       else
         []
@@ -60,13 +62,14 @@ defmodule DdbmWeb.GiveLive do
   end
 
   @impl true
-  def handle_event("select_user", %{"user_id" => user_id}, socket) do
-    user = Accounts.get_user(String.to_integer(user_id))
+  def handle_event("select_user", %{"member_id" => member_id}, socket) do
+    guild_id = Application.get_env(:ddbm_discord, :guild_id)
+    member = Discord.get_member(member_id, guild_id) |> Discord.add_avatar_url()
 
     socket =
       socket
-      |> assign(:selected_user, user)
-      |> assign(:search_query, user.discord_username)
+      |> assign(:selected_user, member)
+      |> assign(:search_query, member.display_name || member.username)
       |> assign(:showing_results, false)
 
     {:noreply, socket}
@@ -99,12 +102,13 @@ defmodule DdbmWeb.GiveLive do
            ) do
         {:ok, _transaction} ->
           token_def = Token.get(selected_token)
+          member_name = selected_user.display_name || selected_user.username
 
           socket =
             socket
             |> put_flash(
               :info,
-              "Successfully gave 1 #{token_def.name} to #{selected_user.discord_username}!"
+              "Successfully gave 1 #{token_def.name} to #{member_name}!"
             )
             |> assign(:selected_user, nil)
             |> assign(:search_query, "")
@@ -148,126 +152,136 @@ defmodule DdbmWeb.GiveLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_user={@current_user}>
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-base-content mb-8">Give Tokens</h1>
+      <div class="max-w-3xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold mb-6">Give Tokens</h1>
 
-        <div class="space-y-6">
+        <div class="space-y-2">
           <%!-- Token Selection --%>
-          <div>
-            <label class="block text-sm font-medium text-base-content/80 mb-3">
-              Select Token Type
-            </label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <button
-                :for={token <- @all_tokens}
-                type="button"
-                phx-click="select_token"
-                phx-value-token={token.id}
-                class={[
-                  "p-4 rounded-lg text-left transition-all shadow-sm",
-                  @selected_token == token.id &&
-                    "bg-primary shadow-lg shadow-primary/50 scale-105",
-                  @selected_token != token.id &&
-                    "bg-base-100 hover:bg-base-300/50"
-                ]}
-              >
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-2xl">{token.icon}</span>
-                  <%= if @selected_token == token.id do %>
-                    <span class="text-success">✓</span>
-                  <% end %>
-                </div>
-                <div class="font-medium text-base-content">{token.name}</div>
-              </button>
+          <div class="card bg-base-200">
+            <div class="card-body p-4">
+              <h2 class="card-title text-base mb-2">Select Token Type</h2>
+              <div class="flex gap-2">
+                <button
+                  :for={token <- @all_tokens}
+                  type="button"
+                  phx-click="select_token"
+                  phx-value-token={token.id}
+                  class={[
+                    "btn btn-sm h-auto flex-col gap-1 py-2 bg-base-100 flex-shrink-0",
+                    @selected_token == token.id && "ring-2 ring-primary"
+                  ]}
+                >
+                  <span class="text-xl">{token.icon}</span>
+                  <span class="text-xs">{token.name}</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <%!-- Rate Limit Display --%>
           <%= if @rate_limits do %>
-            <div class="p-6 rounded-lg bg-base-100 shadow-sm">
-              <h3 class="text-lg font-semibold text-base-content mb-4">Rate Limits</h3>
-              <div class="space-y-4">
-                <%= if @rate_limits.daily_limit do %>
-                  <.rate_limit_indicator
-                    token={@selected_token}
-                    used={@rate_limits.daily_used}
-                    limit={@rate_limits.daily_limit}
-                    period="daily"
-                  />
-                <% end %>
-                <%= if @rate_limits.weekly_limit do %>
-                  <.rate_limit_indicator
-                    token={@selected_token}
-                    used={@rate_limits.weekly_used}
-                    limit={@rate_limits.weekly_limit}
-                    period="weekly"
-                  />
-                <% end %>
+            <div class="card bg-base-200">
+              <div class="card-body p-4">
+                <h2 class="card-title text-base mb-2">Rate Limits</h2>
+                <div class="space-y-3">
+                  <%= if @rate_limits.daily_limit do %>
+                    <.rate_limit_indicator
+                      token={@selected_token}
+                      used={@rate_limits.daily_used}
+                      limit={@rate_limits.daily_limit}
+                      period="daily"
+                    />
+                  <% end %>
+                  <%= if @rate_limits.weekly_limit do %>
+                    <.rate_limit_indicator
+                      token={@selected_token}
+                      used={@rate_limits.weekly_used}
+                      limit={@rate_limits.weekly_limit}
+                      period="weekly"
+                    />
+                  <% end %>
+                </div>
               </div>
             </div>
           <% end %>
 
           <%!-- User Search --%>
-          <div>
-            <label class="block text-sm font-medium text-base-content/80 mb-3">
-              Search for User
-            </label>
-            <div class="relative">
-              <input
-                type="text"
-                phx-keyup="search_users"
-                phx-debounce="300"
-                value={@search_query}
-                placeholder="Type username to search..."
-                class="w-full px-4 py-3 rounded-lg bg-base-100 shadow-sm text-base-content placeholder-base-content/50 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+          <div class="card bg-base-200">
+            <div class="card-body p-4">
+              <h2 class="card-title text-base mb-2">Select Recipient</h2>
+              <div class="relative">
+                <form phx-change="search_users">
+                  <input
+                    type="text"
+                    name="query"
+                    phx-debounce="300"
+                    value={@search_query}
+                    placeholder="Search by username..."
+                    class="input input-bordered w-full"
+                    autocomplete="off"
+                  />
+                </form>
 
-              <%!-- Search Results Dropdown --%>
-              <%= if @showing_results && @search_results != [] do %>
-                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-100 shadow-xl max-h-64 overflow-y-auto">
-                  <button
-                    :for={user <- @search_results}
-                    type="button"
-                    phx-click="select_user"
-                    phx-value-user_id={user.id}
-                    class="w-full px-4 py-3 flex items-center gap-3 hover:bg-base-300 transition-colors text-left"
-                  >
-                    <.user_avatar user={user} size="sm" />
-                    <div>
-                      <div class="font-medium text-base-content">{user.discord_username}</div>
-                      <div class="text-sm text-base-content/60">Discord ID: {user.discord_id}</div>
+                <%!-- Search Results Dropdown --%>
+                <%= if @showing_results && @search_results != [] do %>
+                  <div class="absolute z-10 w-full mt-1 menu bg-base-100 rounded-box shadow-lg max-h-60 overflow-y-auto p-0">
+                    <li :for={member <- @search_results}>
+                      <button
+                        type="button"
+                        phx-click="select_user"
+                        phx-value-member_id={member.discord_id}
+                        class="flex items-center gap-2 p-2"
+                      >
+                        <div class="avatar">
+                          <div class="w-8 rounded-full">
+                            <img src={member.avatar_url} alt={member.display_name || member.username} />
+                          </div>
+                        </div>
+                        <div class="flex-1 text-left">
+                          <div class="font-medium">{member.display_name || member.username}</div>
+                          <div class="text-xs opacity-60">@{member.username}</div>
+                        </div>
+                      </button>
+                    </li>
+                  </div>
+                <% end %>
+
+                <%!-- No Results Message --%>
+                <%= if @showing_results && @search_results == [] && String.length(@search_query) >= 2 do %>
+                  <div class="absolute z-10 w-full mt-1 bg-base-100 rounded-box shadow-lg p-3 text-center text-sm opacity-60">
+                    No users found matching "{@search_query}"
+                  </div>
+                <% end %>
+              </div>
+
+              <%!-- Selected User Display --%>
+              <%= if @selected_user do %>
+                <div class="alert mt-3 p-3">
+                  <div class="flex items-center gap-2 flex-1">
+                    <div class="avatar placeholder">
+                      <div class="bg-neutral rounded-full w-8">
+                        <img
+                          src={@selected_user.avatar_url}
+                          alt={@selected_user.display_name}
+                          class="w-8 h-8 rounded-full ring-2 ring-primary/30"
+                        />
+                      </div>
                     </div>
+                    <div>
+                      <div class="font-medium">{@selected_user.display_name || @selected_user.username}</div>
+                      <div class="text-xs opacity-60">Ready to receive</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    phx-click="clear_user"
+                    class="btn btn-ghost btn-sm btn-circle"
+                  >
+                    <.icon name="hero-x-mark" class="w-4 h-4" />
                   </button>
                 </div>
               <% end %>
-
-              <%!-- No Results Message --%>
-              <%= if @showing_results && @search_results == [] && String.length(@search_query) >= 2 do %>
-                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-100 shadow-xl p-4 text-center text-base-content/60">
-                  No users found matching "{@search_query}"
-                </div>
-              <% end %>
             </div>
-
-            <%!-- Selected User Display --%>
-            <%= if @selected_user do %>
-              <div class="mt-4 p-4 rounded-lg bg-primary/20 shadow-sm flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <.user_avatar user={@selected_user} size="md" />
-                  <div>
-                    <div class="font-medium text-base-content">{@selected_user.discord_username}</div>
-                    <div class="text-sm text-base-content/60">Ready to receive token</div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  phx-click="clear_user"
-                  class="text-base-content/60 hover:text-base-content transition-colors"
-                >
-                  <.icon name="hero-x-mark" class="w-5 h-5" />
-                </button>
-              </div>
-            <% end %>
           </div>
 
           <%!-- Give Button --%>
@@ -276,11 +290,9 @@ defmodule DdbmWeb.GiveLive do
             phx-click="give_token"
             disabled={!@selected_user || !@rate_limits.can_give}
             class={[
-              "w-full py-4 rounded-lg font-bold text-lg transition-all",
-              @selected_user && @rate_limits.can_give &&
-                " text-primary-content hover:opacity-90 shadow-lg hover:shadow-xl",
-              (!@selected_user || !@rate_limits.can_give) &&
-                "bg-base-300 text-base-content/50 cursor-not-allowed"
+              "btn w-full",
+              @selected_user && @rate_limits.can_give && "btn-primary",
+              (!@selected_user || !@rate_limits.can_give) && "btn-disabled"
             ]}
           >
             <%= cond do %>
@@ -292,22 +304,6 @@ defmodule DdbmWeb.GiveLive do
                 Give {Token.get(@selected_token).name}
             <% end %>
           </button>
-
-          <%!-- Help Text --%>
-          <div class="p-4 rounded-lg bg-info/10 shadow-sm">
-            <div class="flex gap-3">
-              <div class="text-2xl">💡</div>
-              <div class="text-sm text-base-content/80">
-                <p class="font-medium mb-1">How it works:</p>
-                <ul class="list-disc list-inside space-y-1 text-base-content/60">
-                  <li>Select the token type you want to give</li>
-                  <li>Search for a user by their Discord username</li>
-                  <li>Check that you haven't reached your rate limit</li>
-                  <li>Click the give button to send the token</li>
-                </ul>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </Layouts.app>
