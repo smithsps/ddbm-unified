@@ -164,11 +164,11 @@ defmodule DdbmWeb.GiveLive do
                 phx-click="select_token"
                 phx-value-token={token.id}
                 class={[
-                  "p-4 rounded-lg text-left transition-all",
+                  "p-4 rounded-lg text-left transition-all shadow-sm",
                   @selected_token == token.id &&
-                    "bg-primary border-2 border-primary shadow-lg shadow-primary/50",
+                    "bg-primary shadow-lg shadow-primary/50 scale-105",
                   @selected_token != token.id &&
-                    "bg-base-200/50 border-2 border-base-300 hover:bg-base-200"
+                    "bg-base-100 hover:bg-base-300/50"
                 ]}
               >
                 <div class="flex items-center justify-between mb-2">
@@ -184,7 +184,7 @@ defmodule DdbmWeb.GiveLive do
 
           <%!-- Rate Limit Display --%>
           <%= if @rate_limits do %>
-            <div class="p-6 rounded-lg bg-base-200/50 border border-base-300">
+            <div class="p-6 rounded-lg bg-base-100 shadow-sm">
               <h3 class="text-lg font-semibold text-base-content mb-4">Rate Limits</h3>
               <div class="space-y-4">
                 <%= if @rate_limits.daily_limit do %>
@@ -219,12 +219,12 @@ defmodule DdbmWeb.GiveLive do
                 phx-debounce="300"
                 value={@search_query}
                 placeholder="Type username to search..."
-                class="w-full px-4 py-3 rounded-lg bg-base-200/50 border border-base-300 text-base-content placeholder-base-content/50 focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full px-4 py-3 rounded-lg bg-base-100 shadow-sm text-base-content placeholder-base-content/50 focus:outline-none focus:ring-2 focus:ring-primary"
               />
 
               <%!-- Search Results Dropdown --%>
               <%= if @showing_results && @search_results != [] do %>
-                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-200 border border-base-300 shadow-xl max-h-64 overflow-y-auto">
+                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-100 shadow-xl max-h-64 overflow-y-auto">
                   <button
                     :for={user <- @search_results}
                     type="button"
@@ -243,7 +243,7 @@ defmodule DdbmWeb.GiveLive do
 
               <%!-- No Results Message --%>
               <%= if @showing_results && @search_results == [] && String.length(@search_query) >= 2 do %>
-                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-200 border border-base-300 shadow-xl p-4 text-center text-base-content/60">
+                <div class="absolute z-10 w-full mt-2 rounded-lg bg-base-100 shadow-xl p-4 text-center text-base-content/60">
                   No users found matching "{@search_query}"
                 </div>
               <% end %>
@@ -251,7 +251,7 @@ defmodule DdbmWeb.GiveLive do
 
             <%!-- Selected User Display --%>
             <%= if @selected_user do %>
-              <div class="mt-4 p-4 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-between">
+              <div class="mt-4 p-4 rounded-lg bg-primary/20 shadow-sm flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <.user_avatar user={@selected_user} size="md" />
                   <div>
@@ -278,7 +278,7 @@ defmodule DdbmWeb.GiveLive do
             class={[
               "w-full py-4 rounded-lg font-bold text-lg transition-all",
               @selected_user && @rate_limits.can_give &&
-                "bg-gradient-to-r from-primary to-secondary text-primary-content hover:opacity-90 shadow-lg hover:shadow-xl",
+                " text-primary-content hover:opacity-90 shadow-lg hover:shadow-xl",
               (!@selected_user || !@rate_limits.can_give) &&
                 "bg-base-300 text-base-content/50 cursor-not-allowed"
             ]}
@@ -294,7 +294,7 @@ defmodule DdbmWeb.GiveLive do
           </button>
 
           <%!-- Help Text --%>
-          <div class="p-4 rounded-lg bg-info/10 border border-info/20">
+          <div class="p-4 rounded-lg bg-info/10 shadow-sm">
             <div class="flex gap-3">
               <div class="text-2xl">💡</div>
               <div class="text-sm text-base-content/80">

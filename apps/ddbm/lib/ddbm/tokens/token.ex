@@ -21,26 +21,26 @@ defmodule Ddbm.Tokens.Token do
     [
       %__MODULE__{
         id: "carry",
-        name: "⚔️ Carry token",
-        plural: "⚔️ Carry tokens",
+        name: "⚔️ Carry Token",
+        plural: "⚔️ Carry Tokens",
         limits: %{daily: 3, weekly: nil}
       },
       %__MODULE__{
         id: "leader",
-        name: "👑 Leader token",
-        plural: "👑 Leader tokens",
+        name: "👑 Leader Token",
+        plural: "👑 Leader Tokens",
         limits: %{daily: 1, weekly: 3}
       },
       %__MODULE__{
         id: "streamer",
-        name: "📺 Streamer token",
-        plural: "📺 Streamer tokens",
+        name: "📺 Streamer Token",
+        plural: "📺 Streamer Tokens",
         limits: %{daily: 3, weekly: nil}
       },
       %__MODULE__{
         id: "toxic",
-        name: "☣ Toxic token",
-        plural: "☣ Toxic tokens",
+        name: "☣ Toxic Token",
+        plural: "☣ Toxic Tokens",
         limits: %{daily: 1, weekly: 3}
       }
     ]

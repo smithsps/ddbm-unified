@@ -53,7 +53,7 @@ defmodule DdbmWeb.DashboardLive do
     <Layouts.app flash={@flash} current_user={@current_user}>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <%!-- User Profile Card --%>
-        <div class="mb-8 p-6 rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
+        <div class="mb-8 p-6 rounded-xl bg-base-100 shadow-sm">
           <div class="flex items-center gap-4">
             <.user_avatar user={@current_user} size="xl" />
             <div>
@@ -69,35 +69,13 @@ defmodule DdbmWeb.DashboardLive do
 
         <%!-- Token Balance Cards --%>
         <div class="mb-8">
-          <h2 class="text-2xl font-bold text-base-content mb-4">Your Token Balances</h2>
+          <h2 class="text-xl font-bold text-base-content mb-4">Your Token Balances</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <.token_balance_card
               :for={token <- @all_tokens}
               token={token.id}
               balance={Map.get(@balances, token.id, 0)}
             />
-          </div>
-        </div>
-
-        <%!-- Quick Stats --%>
-        <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-6 rounded-lg bg-base-200/50 border border-base-300">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-base-content/60 mb-1">Total Received</p>
-                <p class="text-3xl font-bold text-success">{@total_received}</p>
-              </div>
-              <div class="text-4xl">📥</div>
-            </div>
-          </div>
-          <div class="p-6 rounded-lg bg-base-200/50 border border-base-300">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-base-content/60 mb-1">Total Given</p>
-                <p class="text-3xl font-bold text-info">{@total_given}</p>
-              </div>
-              <div class="text-4xl">📤</div>
-            </div>
           </div>
         </div>
 
@@ -114,7 +92,7 @@ defmodule DdbmWeb.DashboardLive do
           </div>
 
           <%= if @recent_transactions == [] do %>
-            <div class="p-12 text-center rounded-lg bg-base-200/50 border border-base-300">
+            <div class="p-12 text-center rounded-lg bg-base-100 shadow-sm">
               <div class="text-6xl mb-4">🎁</div>
               <p class="text-base-content/60 mb-2">No transactions yet</p>
               <p class="text-sm text-base-content/50">

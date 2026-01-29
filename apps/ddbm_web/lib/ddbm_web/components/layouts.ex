@@ -37,7 +37,7 @@ defmodule DdbmWeb.Layouts do
   def app(assigns) do
     ~H"""
     <%= if assigns[:current_user] do %>
-      <header class="sticky top-0 z-50 bg-base-100/95 backdrop-blur-sm border-b border-base-300">
+      <header class="sticky top-0 z-50 bg-base-100/95 backdrop-blur-sm shadow-sm">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex items-center justify-between h-16">
             <%!-- Logo --%>
@@ -60,7 +60,7 @@ defmodule DdbmWeb.Layouts do
             <div class="flex items-center gap-4">
               <%!-- User Menu --%>
               <div class="relative group">
-                <button class="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200/50 hover:bg-base-200 transition-colors">
+                <button class="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-100 hover:bg-base-200 transition-colors">
                   <.user_avatar user={@current_user} size="sm" />
                   <span class="hidden sm:block text-sm font-medium text-base-content">
                     {@current_user.discord_username}
@@ -69,12 +69,12 @@ defmodule DdbmWeb.Layouts do
                 </button>
 
                 <%!-- Dropdown Menu --%>
-                <div class="absolute right-0 mt-2 w-56 rounded-lg bg-base-200 border border-base-300 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div class="absolute right-0 mt-2 w-56 rounded-lg bg-base-100 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <div class="p-3">
                     <div class="mb-3">
                       <.theme_toggle />
                     </div>
-                    <div class="border-t border-base-300 my-2"></div>
+                    <div class="h-px bg-base-300 my-2"></div>
                     <.link
                       href="/logout"
                       method="delete"
@@ -90,7 +90,7 @@ defmodule DdbmWeb.Layouts do
           </div>
 
           <%!-- Mobile Navigation --%>
-          <div class="md:hidden border-t border-base-300 py-3">
+          <div class="md:hidden pt-3 pb-3">
             <div class="flex flex-col gap-1">
               <.nav_link navigate="/dashboard" icon="hero-home">Dashboard</.nav_link>
               <.nav_link navigate="/tokens" icon="hero-trophy">Tokens</.nav_link>
@@ -102,7 +102,7 @@ defmodule DdbmWeb.Layouts do
       </header>
     <% end %>
 
-    <main class="min-h-screen bg-base-100">
+    <main class="min-h-screen bg-base-200">
       {render_slot(@inner_block)}
     </main>
 
@@ -121,7 +121,7 @@ defmodule DdbmWeb.Layouts do
     ~H"""
     <.link
       navigate={@navigate}
-      class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-base-content/80 hover:text-base-content hover:bg-base-200 rounded-lg transition-colors"
+      class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-base-content/80 hover:text-base-content hover:bg-base-300/50 rounded-lg transition-colors"
     >
       <.icon :if={@icon} name={@icon} class="w-4 h-4" />
       {render_slot(@inner_block)}
@@ -144,7 +144,7 @@ defmodule DdbmWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <div class="card relative flex flex-row items-center">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+      <div class="absolute w-1/3 h-full rounded-full bg-base-300 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
 
       <button
         class="flex p-2 cursor-pointer w-1/3"

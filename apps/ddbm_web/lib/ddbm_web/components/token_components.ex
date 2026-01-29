@@ -28,8 +28,7 @@ defmodule DdbmWeb.TokenComponents do
     ~H"""
     <span class={[
       "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full",
-      "bg-gradient-to-r from-primary/10 to-secondary/10",
-      "border border-primary/20 text-sm font-medium",
+      "bg-primary/10 text-sm font-medium",
       @class
     ]}>
       <span class="text-lg">{String.first(@token_name)}</span>
@@ -70,7 +69,7 @@ defmodule DdbmWeb.TokenComponents do
       id={@id}
       class={[
         "flex items-center justify-between p-4 rounded-lg",
-        "bg-base-200/50 border border-base-300 hover:bg-base-200 transition-colors",
+        "bg-base-100 hover:bg-base-300/50 transition-colors shadow-sm",
         @class
       ]}
     >
@@ -126,12 +125,12 @@ defmodule DdbmWeb.TokenComponents do
       <img
         src={@user.discord_avatar}}
         alt={@user.discord_username}
-        class={[@size_classes, "rounded-full border-2 border-primary/50", @class]}
+        class={[@size_classes, "rounded-full ring-2 ring-primary/30", @class]}
       />
     <% else %>
       <div class={[
         @size_classes,
-        "rounded-full border-2 border-primary/50 bg-gradient-to-br from-primary to-secondary",
+        "rounded-full ring-2 ring-primary/30",
         "flex items-center justify-center text-primary-content font-bold",
         @class
       ]}>
@@ -159,17 +158,13 @@ defmodule DdbmWeb.TokenComponents do
 
     ~H"""
     <div class={[
-      "p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10",
-      "border border-primary/20 hover:border-primary/40 transition-all",
-      "hover:shadow-lg hover:shadow-primary/20",
+      "p-4 rounded-xl bg-base-100 shadow-sm",
+      "hover:shadow-lg hover:shadow-primary/20 transition-all",
       @class
     ]}>
-      <div class="flex items-center justify-between mb-2">
+      <div class="tooltip tooltip-bottom flex items-center justify-between px-2" data-tip={[@token_def.name]}>
         <span class="text-4xl">{String.first(@token_def.name)}</span>
         <span class="text-3xl font-bold text-primary">{@balance}</span>
-      </div>
-      <div class="text-sm text-base-content/80 font-medium">
-        {Token.display_name(@token_def, @balance)}
       </div>
     </div>
     """
@@ -205,9 +200,9 @@ defmodule DdbmWeb.TokenComponents do
       |> assign(:entries_with_names, entries_with_names)
 
     ~H"""
-    <div class={["overflow-hidden rounded-lg border border-base-300", @class]}>
+    <div class={["overflow-hidden rounded-lg bg-base-100 shadow-sm", @class]}>
       <table class="w-full">
-        <thead class="bg-base-200/50 border-b border-base-300">
+        <thead class="bg-base-300/30">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider">
               Rank
@@ -220,11 +215,11 @@ defmodule DdbmWeb.TokenComponents do
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-base-300">
+        <tbody class="divide-y divide-base-300/30">
           <tr
             :for={{entry, index} <- Enum.with_index(@entries_with_names, 1)}
             class={[
-              "hover:bg-base-200/50 transition-colors",
+              "hover:bg-base-300/30 transition-colors",
               entry.user_id == @current_user_id && "bg-primary/10"
             ]}
           >
@@ -245,7 +240,7 @@ defmodule DdbmWeb.TokenComponents do
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center gap-3">
                 <div class={[
-                  "w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary",
+                  "w-8 h-8 rounded-full",
                   "flex items-center justify-center text-primary-content font-bold text-sm"
                 ]}>
                   {String.first(entry.display_name)}
@@ -310,7 +305,7 @@ defmodule DdbmWeb.TokenComponents do
           {@used}/{@limit}
         </span>
       </div>
-      <div class="h-2 bg-base-300 rounded-full overflow-hidden">
+      <div class="h-2 bg-base-300/50 rounded-full overflow-hidden">
         <div
           class={[
             "h-full transition-all duration-300",

@@ -94,7 +94,7 @@ defmodule DdbmWeb.TransactionsLive do
           <select
             phx-change="filter_token"
             name="token"
-            class="px-4 py-2 rounded-lg bg-base-200/50 border border-base-300 text-base-content"
+            class="px-4 py-2 rounded-lg bg-base-100 shadow-sm text-base-content"
           >
             <option value="">All tokens</option>
             <option :for={token <- @all_tokens} value={token.id} selected={@filter_token == token.id}>
@@ -105,7 +105,7 @@ defmodule DdbmWeb.TransactionsLive do
 
         <%!-- Transactions List --%>
         <%= if @total_count == 0 do %>
-          <div class="p-12 text-center rounded-lg bg-base-200/50 border border-base-300">
+          <div class="p-12 text-center rounded-lg bg-base-100 shadow-sm">
             <div class="text-6xl mb-4">📜</div>
             <p class="text-base-content/60 mb-2">No transactions found</p>
             <p class="text-sm text-base-content/50">
@@ -140,25 +140,25 @@ defmodule DdbmWeb.TransactionsLive do
                 phx-click="prev_page"
                 disabled={@page == 1}
                 class={[
-                  "px-4 py-2 rounded-lg font-medium transition-all",
+                  "px-4 py-2 rounded-lg font-medium transition-all shadow-sm",
                   @page == 1 &&
-                    "bg-base-200/50 text-base-content/50 cursor-not-allowed",
+                    "bg-base-100 text-base-content/50 cursor-not-allowed",
                   @page > 1 &&
                     "bg-primary text-primary-content hover:bg-primary/90"
                 ]}
               >
                 ← Previous
               </button>
-              <div class="px-4 py-2 bg-base-200/50 rounded-lg text-base-content">
+              <div class="px-4 py-2 bg-base-100 rounded-lg text-base-content shadow-sm">
                 Page {@page} of {@total_pages}
               </div>
               <button
                 phx-click="next_page"
                 disabled={@page == @total_pages}
                 class={[
-                  "px-4 py-2 rounded-lg font-medium transition-all",
+                  "px-4 py-2 rounded-lg font-medium transition-all shadow-sm",
                   @page == @total_pages &&
-                    "bg-base-200/50 text-base-content/50 cursor-not-allowed",
+                    "bg-base-100 text-base-content/50 cursor-not-allowed",
                   @page < @total_pages &&
                     "bg-primary text-primary-content hover:bg-primary/90"
                 ]}

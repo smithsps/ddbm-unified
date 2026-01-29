@@ -84,11 +84,11 @@ defmodule DdbmWeb.TokensLive do
               phx-click="select_token"
               phx-value-token={token.id}
               class={[
-                "px-4 py-2 rounded-lg font-medium transition-all",
+                "px-4 py-2 rounded-lg font-medium transition-all shadow-sm",
                 @selected_token == token.id &&
                   "bg-primary text-primary-content shadow-lg shadow-primary/50",
                 @selected_token != token.id &&
-                  "bg-base-200/50 text-base-content/80 hover:bg-base-200 border border-base-300"
+                  "bg-base-100 text-base-content/80 hover:bg-base-300/50"
               ]}
             >
               {token.name}
@@ -97,7 +97,7 @@ defmodule DdbmWeb.TokensLive do
 
           <%!-- User's Rank Card --%>
           <%= if @user_rank do %>
-            <div class="mb-6 p-4 rounded-lg bg-primary/20 border border-primary/40">
+            <div class="mb-6 p-4 rounded-lg bg-primary/20 shadow-sm">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <.user_avatar user={@current_user} size="sm" />
@@ -113,7 +113,7 @@ defmodule DdbmWeb.TokensLive do
               </div>
             </div>
           <% else %>
-            <div class="mb-6 p-4 rounded-lg bg-base-200/50 border border-base-300">
+            <div class="mb-6 p-4 rounded-lg bg-base-100 shadow-sm">
               <p class="text-center text-base-content/60">
                 You haven't received any {Token.get(@selected_token).plural} yet.
               </p>
@@ -122,7 +122,7 @@ defmodule DdbmWeb.TokensLive do
 
           <%!-- Leaderboard Table --%>
           <%= if @leaderboard == [] do %>
-            <div class="p-12 text-center rounded-lg bg-base-200/50 border border-base-300">
+            <div class="p-12 text-center rounded-lg bg-base-100 shadow-sm">
               <div class="text-6xl mb-4">🏆</div>
               <p class="text-base-content/60">No leaderboard data yet</p>
             </div>

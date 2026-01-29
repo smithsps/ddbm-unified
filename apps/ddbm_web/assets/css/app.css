@@ -17,6 +17,7 @@
   curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
   We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
   on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
+
 @plugin "../vendor/daisyui-theme" {
   name: "sunset";
   default: true;
@@ -26,8 +27,8 @@
   --color-base-200: oklch(21% 0.034 264.665);
   --color-base-300: oklch(18% 0.019 237.69);
   --color-base-content: oklch(77.383% 0.043 245.096);
-  --color-primary: oklch(74.703% 0.158 39.947);
-  --color-primary-content: oklch(14.94% 0.031 39.947);
+  --color-primary: oklch(71% 0.203 305.504);
+  --color-primary-content: oklch(0% 0 0);
   --color-secondary: oklch(72.537% 0.177 2.72);
   --color-secondary-content: oklch(14.507% 0.035 2.72);
   --color-accent: oklch(71.294% 0.166 299.844);
