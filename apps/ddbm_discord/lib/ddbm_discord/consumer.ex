@@ -23,6 +23,12 @@ defmodule DdbmDiscord.Consumer do
   end
 
   @impl true
+  def handle_event({:GUILD_MEMBER_UPDATE, {guild_id, _old_member, new_member}, _ws_state}) do
+    # Cache member updates in real-time (username, avatar, nickname changes)
+    cache_member_update(guild_id, new_member)
+  end
+
+  @impl true
   def handle_event(_event) do
     :noop
   end
@@ -66,6 +72,48 @@ defmodule DdbmDiscord.Consumer do
       }
 
       Discord.upsert_member(attrs)
+    end
+  end
+
+  defp cache_member_update(guild_id, member) do
+    # Member struct only has user_id, need to get full user from cache or API
+    alias Nostrum.Cache.UserCache
+    alias Nostrum.Api
+
+    case UserCache.get(member.user_id) do
+      {:ok, user} ->
+        attrs = %{
+          discord_id: to_string(user.id),
+          username: user.username,
+          discriminator: user.discriminator,
+          display_name: member.nick || user.global_name,
+          avatar: user.avatar,
+          guild_id: to_string(guild_id)
+        }
+
+        Discord.upsert_member(attrs)
+
+      {:error, _} ->
+        # User not in cache, fetch from API
+        case Api.get_guild_member(guild_id, member.user_id) do
+          {:ok, full_member} ->
+            user = full_member.user
+
+            attrs = %{
+              discord_id: to_string(user.id),
+              username: user.username,
+              discriminator: user.discriminator,
+              display_name: full_member.nick || user.global_name,
+              avatar: user.avatar,
+              guild_id: to_string(guild_id)
+            }
+
+            Discord.upsert_member(attrs)
+
+          {:error, _} ->
+            # Failed to fetch, skip this update
+            :ok
+        end
     end
   end
 end

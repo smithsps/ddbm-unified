@@ -70,10 +70,12 @@ config :ueberauth, Ueberauth,
 config :nostrum,
   gateway_intents: [
     :guilds,
+    :guild_members,
     :guild_messages,
     :message_content,
     :direct_messages
   ],
+  request_guild_members: true,
   ffmpeg: nil
 
 # Import environment specific config. This must remain at the bottom

@@ -1,17 +1,24 @@
 defmodule DdbmDiscord.MemberCache do
   @moduledoc """
   GenServer that periodically fetches and caches Discord guild members.
-  Syncs on startup and then every hour.
+  Syncs on startup and then once per week.
+
+  Member sync process:
+  1. Fetches all member IDs via paginated API calls
+  2. Checks UserCache for full user data (fast path)
+  3. Falls back to REST API for members not in cache
+  4. Processes up to 10 members concurrently to balance speed and rate limits
   """
 
   use GenServer
   require Logger
 
+  alias Nostrum.Api
   alias Nostrum.Api.Guild
   alias Nostrum.Cache.UserCache
   alias Ddbm.Discord
 
-  @sync_interval :timer.hours(1)
+  @sync_interval :timer.hours(24 * 7)
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -67,35 +74,87 @@ defmodule DdbmDiscord.MemberCache do
     all_members = fetch_all_members(guild_id, [], nil)
     Logger.info("Fetched #{length(all_members)} total members from Discord")
 
-    # Only cache members that are in Nostrum's UserCache
-    # Others will be cached naturally as they interact with the bot
+    # Fetch full member details, checking UserCache first then falling back to REST API
     members_data =
       all_members
-      |> Enum.map(fn member ->
-        case UserCache.get(member.user_id) do
-          {:ok, user} ->
-            %{
-              discord_id: to_string(user.id),
-              username: user.username,
-              discriminator: user.discriminator,
-              display_name: member.nick || user.global_name,
-              avatar: user.avatar,
-              guild_id: to_string(guild_id)
-            }
-
-          {:error, _} ->
-            # Not in cache yet, will be cached when they interact
-            nil
-        end
+      |> Task.async_stream(
+        fn member ->
+          fetch_member_data(guild_id, member)
+        end,
+        max_concurrency: 10,
+        timeout: :infinity,
+        on_timeout: :kill_task
+      )
+      |> Enum.map(fn
+        {:ok, member_data} -> member_data
+        {:exit, _reason} -> nil
       end)
       |> Enum.reject(&is_nil/1)
 
+    # Batch insert all members
     Discord.upsert_members(members_data)
 
     cached_count = Discord.count_members(guild_id)
     Logger.info("Discord member sync complete. #{cached_count} members cached from #{length(all_members)} total.")
 
     {:ok, cached_count}
+  end
+
+  defp fetch_member_data(guild_id, member) do
+    # Try UserCache first (fast)
+    case UserCache.get(member.user_id) do
+      {:ok, user} ->
+        %{
+          discord_id: to_string(user.id),
+          username: user.username,
+          discriminator: user.discriminator,
+          display_name: member.nick || user.global_name,
+          avatar: user.avatar,
+          guild_id: to_string(guild_id)
+        }
+
+      {:error, _} ->
+        # Fetch from REST API (slower but complete)
+        fetch_member_from_api(guild_id, member.user_id, member.nick)
+    end
+  end
+
+  defp fetch_member_from_api(guild_id, user_id, _nick) do
+    # Fetch guild member to get nickname and other guild-specific data
+    with {:ok, member} <- Api.get_guild_member(guild_id, user_id),
+         # Get user data - try cache first, then API
+         user <- get_user_data(user_id) do
+      if user do
+        %{
+          discord_id: to_string(user.id),
+          username: user.username,
+          discriminator: user.discriminator,
+          display_name: member.nick || user.global_name,
+          avatar: user.avatar,
+          guild_id: to_string(guild_id)
+        }
+      else
+        nil
+      end
+    else
+      {:error, error} ->
+        Logger.debug("Failed to fetch member #{user_id}: #{inspect(error)}")
+        nil
+    end
+  end
+
+  defp get_user_data(user_id) do
+    case UserCache.get(user_id) do
+      {:ok, user} ->
+        user
+
+      {:error, _} ->
+        # Not in cache, fetch from API
+        case Api.get_user(user_id) do
+          {:ok, user} -> user
+          {:error, _} -> nil
+        end
+    end
   end
 
   defp fetch_all_members(guild_id, accumulated, after_id) do
