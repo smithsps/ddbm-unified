@@ -28,7 +28,7 @@ defmodule DdbmWeb.TokenComponents do
     ~H"""
     <span class={[
       "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full",
-      "bg-primary/10 text-sm font-medium",
+      "bg-base-200 text-sm font-medium",
       @class
     ]}>
       <span class="text-lg">{@token_def.icon}</span>
@@ -56,6 +56,8 @@ defmodule DdbmWeb.TokenComponents do
 
     sender_name = Discord.get_display_name(assigns.transaction.sender_user_id, guild_id)
     receiver_name = Discord.get_display_name(assigns.transaction.user_id, guild_id)
+    sender_avatar = Discord.get_avatar(assigns.transaction.sender_user_id, guild_id)
+    receiver_avatar = Discord.get_avatar(assigns.transaction.user_id, guild_id)
 
     is_received = assigns.transaction.user_id == assigns.current_user_id
     is_sent = assigns.transaction.sender_user_id == assigns.current_user_id
@@ -70,6 +72,8 @@ defmodule DdbmWeb.TokenComponents do
       |> assign(:is_third_party, is_third_party)
       |> assign(:sender_name, sender_name)
       |> assign(:receiver_name, receiver_name)
+      |> assign(:sender_avatar, sender_avatar)
+      |> assign(:receiver_avatar, receiver_avatar)
 
     ~H"""
     <div
@@ -83,10 +87,20 @@ defmodule DdbmWeb.TokenComponents do
       <div class="flex items-center gap-4">
         <div class="text-2xl">{@token_def.icon}</div>
         <div>
-          <div class="font-medium">
+          <div class="font-medium flex items-center gap-2 flex-wrap">
             <%= cond do %>
               <% @is_received -> %>
-                <span class="text-primary">{@sender_name}</span> gave you
+                <span class="inline-flex items-center gap-1.5">
+                  <%= if @sender_avatar do %>
+                    <img
+                      src={@sender_avatar}
+                      alt={@sender_name}
+                      class="w-5 h-5 rounded-full ring-1 ring-primary/30"
+                    />
+                  <% end %>
+                  <span class="text-primary">{@sender_name}</span>
+                </span>
+                gave you
                 <%= if @transaction.amount == 1 do %>
                   a <span class="text-success">{@token_name}</span>
                 <% else %>
@@ -95,19 +109,49 @@ defmodule DdbmWeb.TokenComponents do
               <% @is_sent -> %>
                 You gave
                 <%= if @transaction.amount == 1 do %>
-                  a <span class="text-info">{@token_name}</span>
+                  a <span class="text-accent">{@token_name}</span>
                 <% else %>
-                  <span class="text-info">{@transaction.amount} {@token_name}</span>
+                  <span class="text-accent">{@transaction.amount} {@token_name}</span>
                 <% end %>
-                to <span class="text-primary">{@receiver_name}</span>
+                to
+                <span class="inline-flex items-center gap-1.5">
+                  <%= if @receiver_avatar do %>
+                    <img
+                      src={@receiver_avatar}
+                      alt={@receiver_name}
+                      class="w-5 h-5 rounded-full ring-1 ring-primary/30"
+                    />
+                  <% end %>
+                  <span class="text-primary">{@receiver_name}</span>
+                </span>
               <% @is_third_party -> %>
-                <span class="text-primary">{@sender_name}</span> gave
+                <span class="inline-flex items-center gap-1.5">
+                  <%= if @sender_avatar do %>
+                    <img
+                      src={@sender_avatar}
+                      alt={@sender_name}
+                      class="w-5 h-5 rounded-full ring-1 ring-primary/30"
+                    />
+                  <% end %>
+                  <span class="text-primary">{@sender_name}</span>
+                </span>
+                gave
                 <%= if @transaction.amount == 1 do %>
                   a <span class="text-base-content/80">{@token_name}</span>
                 <% else %>
                   <span class="text-base-content/80">{@transaction.amount} {@token_name}</span>
                 <% end %>
-                to <span class="text-primary">{@receiver_name}</span>
+                to
+                <span class="inline-flex items-center gap-1.5">
+                  <%= if @receiver_avatar do %>
+                    <img
+                      src={@receiver_avatar}
+                      alt={@receiver_name}
+                      class="w-5 h-5 rounded-full ring-1 ring-primary/30"
+                    />
+                  <% end %>
+                  <span class="text-primary">{@receiver_name}</span>
+                </span>
             <% end %>
           </div>
           <div class="text-sm text-base-content/60">
@@ -154,7 +198,7 @@ defmodule DdbmWeb.TokenComponents do
     <% else %>
       <div class={[
         @size_classes,
-        "rounded-full ring-2 ring-primary/30",
+        "rounded-full ring-2 ring-primary/30 bg-primary",
         "flex items-center justify-center text-primary-content font-bold",
         @class
       ]}>
@@ -183,12 +227,12 @@ defmodule DdbmWeb.TokenComponents do
     ~H"""
     <div class={[
       "p-4 rounded-xl bg-base-100 shadow-sm",
-      "hover:shadow-lg hover:shadow-primary/20 transition-all",
+      "hover:shadow-lg transition-all",
       @class
     ]}>
       <div class="tooltip tooltip-bottom flex items-center justify-between px-2" data-tip={[@token_def.name]}>
         <span class="text-4xl">{@token_def.icon}</span>
-        <span class="text-3xl font-bold text-primary">{@balance}</span>
+        <span class="text-3xl font-bold text-base-content">{@balance}</span>
       </div>
     </div>
     """
@@ -211,11 +255,15 @@ defmodule DdbmWeb.TokenComponents do
     token_def = Token.get(assigns.token)
     guild_id = Application.get_env(:ddbm_discord, :guild_id)
 
-    # Use ETS-cached lookups
+    # Use ETS-cached lookups for names and avatars
     entries_with_names =
       Enum.map(assigns.entries, fn entry ->
         display_name = Discord.get_display_name(entry.user_id, guild_id)
-        Map.put(entry, :display_name, display_name)
+        avatar_url = Discord.get_avatar(entry.user_id, guild_id)
+
+        entry
+        |> Map.put(:display_name, display_name)
+        |> Map.put(:avatar_url, avatar_url)
       end)
 
     assigns =
@@ -243,8 +291,8 @@ defmodule DdbmWeb.TokenComponents do
           <tr
             :for={{entry, index} <- Enum.with_index(@entries_with_names, 1)}
             class={[
-              "hover:bg-base-300/30 transition-colors",
-              entry.user_id == @current_user_id && "bg-primary/10"
+              "hover:bg-base-200 transition-colors",
+              entry.user_id == @current_user_id && "bg-base-200"
             ]}
           >
             <td class="px-6 py-4 whitespace-nowrap">
@@ -263,12 +311,20 @@ defmodule DdbmWeb.TokenComponents do
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center gap-3">
-                <div class={[
-                  "w-8 h-8 rounded-full",
-                  "flex items-center justify-center text-primary-content font-bold text-sm"
-                ]}>
-                  {String.first(entry.display_name)}
-                </div>
+                <%= if entry.avatar_url do %>
+                  <img
+                    src={entry.avatar_url}
+                    alt={entry.display_name}
+                    class="w-8 h-8 rounded-full ring-2 ring-primary/30"
+                  />
+                <% else %>
+                  <div class={[
+                    "w-8 h-8 rounded-full bg-primary",
+                    "flex items-center justify-center text-primary-content font-bold text-sm"
+                  ]}>
+                    {String.first(entry.display_name)}
+                  </div>
+                <% end %>
                 <span class={[
                   "font-medium",
                   entry.user_id == @current_user_id && "text-primary"
@@ -281,7 +337,7 @@ defmodule DdbmWeb.TokenComponents do
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
-              <span class="text-lg font-bold text-primary">{entry.total}</span>
+              <span class="text-lg font-bold text-base-content">{entry.total}</span>
             </td>
           </tr>
         </tbody>

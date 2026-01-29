@@ -86,9 +86,9 @@ defmodule DdbmWeb.LeaderboardLive do
               class={[
                 "px-4 py-2 rounded-lg font-medium transition-all shadow-sm",
                 @selected_token == token.id &&
-                  "bg-primary text-primary-content shadow-lg shadow-primary/50",
+                  "bg-primary text-primary-content shadow-lg",
                 @selected_token != token.id &&
-                  "bg-base-100 text-base-content/80 hover:bg-base-300/50"
+                  "bg-base-200 text-base-content hover:bg-base-300"
               ]}
             >
               {token.name}
@@ -97,7 +97,7 @@ defmodule DdbmWeb.LeaderboardLive do
 
           <%!-- User's Rank Card --%>
           <%= if @user_rank do %>
-            <div class="mb-6 p-4 rounded-lg bg-primary/20 shadow-sm">
+            <div class="mb-6 p-4 rounded-lg bg-base-200 shadow-sm border border-primary/20">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <.user_avatar user={@current_user} size="sm" />

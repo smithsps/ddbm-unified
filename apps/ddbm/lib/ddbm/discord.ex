@@ -24,6 +24,14 @@ defmodule Ddbm.Discord do
   end
 
   @doc """
+  Gets avatar URL for a Discord user from the cache/database.
+  Returns nil if not found.
+  """
+  def get_avatar(discord_id, guild_id) do
+    Ddbm.Discord.MemberCache.get_avatar(discord_id, guild_id)
+  end
+
+  @doc """
   Upserts a Discord member into the database and ETS cache.
   """
   def upsert_member(attrs) do

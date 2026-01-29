@@ -57,6 +57,24 @@ defmodule Ddbm.Discord.MemberCache do
   end
 
   @doc """
+  Gets avatar URL from cache, with automatic database fallback.
+  Returns the full Discord CDN avatar URL or nil if not found.
+  """
+  def get_avatar(discord_id, guild_id) do
+    case Ddbm.Discord.get_member(discord_id, guild_id) do
+      nil ->
+        nil
+
+      member ->
+        if member.avatar do
+          "https://cdn.discordapp.com/avatars/#{member.discord_id}/#{member.avatar}.png"
+        else
+          nil
+        end
+    end
+  end
+
+  @doc """
   Puts a member into the cache.
   Called when we upsert a member to the database.
   """
