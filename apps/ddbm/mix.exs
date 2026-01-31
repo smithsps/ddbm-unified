@@ -40,7 +40,8 @@ defmodule Ddbm.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:ecto_sql, "~> 3.13"},
       {:ecto_sqlite3, ">= 0.0.0"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:oban, "~> 2.18"}
     ]
   end
 

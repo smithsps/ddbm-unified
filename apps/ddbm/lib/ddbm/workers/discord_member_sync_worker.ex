@@ -1,7 +1,6 @@
-defmodule DdbmDiscord.MemberCache do
+defmodule Ddbm.Workers.DiscordMemberSyncWorker do
   @moduledoc """
-  GenServer that periodically fetches and caches Discord guild members.
-  Syncs on startup and then once per week.
+  Oban worker that periodically fetches and caches Discord guild members.
 
   Member sync process:
   1. Fetches all member IDs via paginated API calls
@@ -10,67 +9,35 @@ defmodule DdbmDiscord.MemberCache do
   4. Processes up to 10 members concurrently to balance speed and rate limits
   """
 
-  use GenServer
-  require Logger
+  use Oban.Worker,
+    queue: :discord,
+    max_attempts: 3,
+    unique: [period: {7, :days}]
 
+  require Logger
   alias Nostrum.Api
   alias Nostrum.Api.Guild
   alias Nostrum.Cache.UserCache
   alias Ddbm.Discord
 
-  @sync_interval :timer.hours(24 * 7)
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"guild_id" => guild_id}}) do
+    Logger.info("Starting Oban Discord member sync for guild #{guild_id}")
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-  end
+    guild_id = String.to_integer(guild_id)
 
-  @impl true
-  def init(_state) do
-    # Schedule immediate sync on startup
-    send(self(), :sync_members)
+    case sync_guild_members(guild_id) do
+      {:ok, count} ->
+        Logger.info("Discord member sync complete. #{count} members cached.")
+        :ok
 
-    {:ok, %{last_sync: nil}}
-  end
-
-  @impl true
-  def handle_info(:sync_members, state) do
-    guild_id = Application.get_env(:ddbm_discord, :guild_id)
-
-    if guild_id do
-      sync_guild_members(guild_id)
-
-      # Schedule next sync
-      Process.send_after(self(), :sync_members, @sync_interval)
-
-      {:noreply, %{state | last_sync: DateTime.utc_now()}}
-    else
-      Logger.warning("No guild_id configured, skipping member sync")
-      {:noreply, state}
+      {:error, reason} ->
+        Logger.error("Discord member sync failed: #{inspect(reason)}")
+        {:error, reason}
     end
-  end
-
-  @impl true
-  def handle_call(:force_sync, _from, state) do
-    guild_id = Application.get_env(:ddbm_discord, :guild_id)
-
-    if guild_id do
-      result = sync_guild_members(guild_id)
-      {:reply, result, %{state | last_sync: DateTime.utc_now()}}
-    else
-      {:reply, {:error, :no_guild_configured}, state}
-    end
-  end
-
-  @doc """
-  Forces an immediate sync of guild members.
-  """
-  def force_sync do
-    GenServer.call(__MODULE__, :force_sync, 30_000)
   end
 
   defp sync_guild_members(guild_id) do
-    Logger.info("Starting Discord member sync for guild #{guild_id}")
-
     all_members = fetch_all_members(guild_id, [], nil)
     Logger.info("Fetched #{length(all_members)} total members from Discord")
 

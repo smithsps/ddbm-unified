@@ -13,6 +13,28 @@ import Config
 config :ddbm,
   ecto_repos: [Ddbm.Repo]
 
+config :ddbm, Oban,
+  repo: Ddbm.Repo,
+  engine: Oban.Engines.Lite,
+  notifier: Oban.Notifiers.PG,
+  prefix: false,
+  queues: [
+    discord: 3,      # Discord-related jobs
+    default: 10,     # General background jobs
+    betting: 5       # Future: LoL betting jobs
+  ],
+  plugins: [
+    {Oban.Plugins.Cron,
+      crontab: [
+        # Sync Discord members every 7 days at 3am UTC
+        {"0 3 */7 * *", Ddbm.Workers.DiscordMemberSyncWorker}
+      ]
+    },
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
+    {Oban.Plugins.Staler, interval: :timer.minutes(5)},
+    {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)}
+  ]
+
 config :ddbm_web,
   ecto_repos: [Ddbm.Repo],
   generators: [context_app: :ddbm]

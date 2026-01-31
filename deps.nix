@@ -661,6 +661,30 @@ let
         in
         drv;
 
+      oban =
+        let
+          version = "2.20.3";
+          drv = buildMix {
+            inherit version;
+            name = "oban";
+            appConfigPath = ./config;
+
+            src = fetchHex {
+              inherit version;
+              pkg = "oban";
+              sha256 = "075ffbf1279a96bec495bc63d647b08929837d70bcc0427249ffe4d1dddaec33";
+            };
+
+            beamDeps = [
+              ecto_sql
+              ecto_sqlite3
+              jason
+              telemetry
+            ];
+          };
+        in
+        drv;
+
       phoenix =
         let
           version = "1.8.3";

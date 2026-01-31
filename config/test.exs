@@ -27,5 +27,11 @@ config :phoenix, :plug_init_mode, :runtime
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
+# Disable Oban during tests
+config :ddbm, Oban,
+  testing: :manual,
+  queues: false,
+  plugins: false
+
 # Disable Discord bot in test
 config :ddbm_discord, start_bot: false

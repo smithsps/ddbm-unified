@@ -13,6 +13,7 @@ defmodule Ddbm.Application do
        repos: Application.fetch_env!(:ddbm, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:ddbm, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Ddbm.PubSub},
+      {Oban, Application.fetch_env!(:ddbm, Oban)},
       Ddbm.Discord.MemberCache
       # Start a worker by calling: Ddbm.Worker.start_link(arg)
       # {Ddbm.Worker, arg}
