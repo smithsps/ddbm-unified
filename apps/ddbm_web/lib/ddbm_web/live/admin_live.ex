@@ -7,27 +7,54 @@ defmodule DdbmWeb.AdminLive do
   def mount(_params, _session, socket) do
     current_user = socket.assigns.current_user
 
-    if current_user do
-      # Get guild ID from environment (you may want to make this configurable)
-      guild_id = Application.get_env(:ddbm_discord, :guild_id, "")
+    cond do
+      # Not logged in at all
+      is_nil(current_user) ->
+        socket =
+          socket
+          |> put_flash(:error, "You must be logged in to access the admin panel.")
+          |> push_navigate(to: ~p"/")
 
-      socket =
-        socket
-        |> assign(:page_title, "Admin - Streaming Stats")
-        |> assign(:guild_id, guild_id)
-        |> assign(:view_mode, :active_streams)
-        |> assign(:page, 1)
-        |> assign(:per_page, 50)
-        |> assign(:active_count, 0)
-        |> assign(:history_count, 0)
-        |> assign(:stats, %{})
-        |> stream_configure(:streams, dom_id: &"stream-#{&1.id}")
-        |> load_data()
+        {:ok, socket}
 
-      {:ok, socket}
-    else
-      {:ok, push_navigate(socket, to: ~p"/")}
+      # Logged in but not authorized
+      not is_admin?(current_user) ->
+        socket =
+          socket
+          |> put_flash(:error, "You are not authorized to access the admin panel.")
+          |> push_navigate(to: ~p"/dashboard")
+
+        {:ok, socket}
+
+      # Authorized admin
+      true ->
+        guild_id = Application.get_env(:ddbm_discord, :guild_id, "")
+
+        socket =
+          socket
+          |> assign(:page_title, "Admin - Streaming Stats")
+          |> assign(:guild_id, guild_id)
+          |> assign(:view_mode, :active_streams)
+          |> assign(:page, 1)
+          |> assign(:per_page, 50)
+          |> assign(:active_count, 0)
+          |> assign(:history_count, 0)
+          |> assign(:stats, %{})
+          |> stream_configure(:streams, dom_id: &"stream-#{&1.id}")
+          |> load_data()
+
+        {:ok, socket}
     end
+  end
+
+  defp is_admin?(user) do
+    admin_ids =
+      Application.get_env(:ddbm_web, :admin_discord_ids, "")
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+
+    user.discord_id in admin_ids
   end
 
   @impl true

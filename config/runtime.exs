@@ -37,6 +37,11 @@ if discord_token = env["DISCORD_TOKEN"] || System.get_env("DISCORD_TOKEN") do
   end
 end
 
+# Admin Discord IDs configuration
+if admin_ids = env["ADMIN_DISCORD_IDS"] || System.get_env("ADMIN_DISCORD_IDS") do
+  config :ddbm_web, :admin_discord_ids, admin_ids
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
