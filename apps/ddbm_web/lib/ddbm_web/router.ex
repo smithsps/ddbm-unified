@@ -50,6 +50,7 @@ defmodule DdbmWeb.Router do
       live "/tokens/leaderboard", LeaderboardLive, :index
       live "/tokens/log", LogLive, :index
       live "/tokens/give", GiveLive, :index
+      live "/admin", AdminLive, :index
     end
   end
 

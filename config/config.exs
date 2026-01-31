@@ -31,7 +31,6 @@ config :ddbm, Oban,
       ]
     },
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
-    {Oban.Plugins.Staler, interval: :timer.minutes(5)},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)}
   ]
 
@@ -95,7 +94,8 @@ config :nostrum,
     :guild_members,
     :guild_messages,
     :message_content,
-    :direct_messages
+    :direct_messages,
+    :guild_presences
   ],
   request_guild_members: true,
   ffmpeg: nil

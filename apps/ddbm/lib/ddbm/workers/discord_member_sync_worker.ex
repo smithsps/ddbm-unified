@@ -14,6 +14,9 @@ defmodule Ddbm.Workers.DiscordMemberSyncWorker do
     max_attempts: 3,
     unique: [period: {7, :days}]
 
+  # Nostrum modules are available at runtime via ddbm_discord dependency
+  @compile {:no_warn_undefined, [Nostrum.Api, Nostrum.Api.Guild, Nostrum.Cache.UserCache]}
+
   require Logger
   alias Nostrum.Api
   alias Nostrum.Api.Guild
@@ -26,15 +29,9 @@ defmodule Ddbm.Workers.DiscordMemberSyncWorker do
 
     guild_id = String.to_integer(guild_id)
 
-    case sync_guild_members(guild_id) do
-      {:ok, count} ->
-        Logger.info("Discord member sync complete. #{count} members cached.")
-        :ok
-
-      {:error, reason} ->
-        Logger.error("Discord member sync failed: #{inspect(reason)}")
-        {:error, reason}
-    end
+    {:ok, count} = sync_guild_members(guild_id)
+    Logger.info("Discord member sync complete. #{count} members cached.")
+    :ok
   end
 
   defp sync_guild_members(guild_id) do
@@ -88,7 +85,7 @@ defmodule Ddbm.Workers.DiscordMemberSyncWorker do
 
   defp fetch_member_from_api(guild_id, user_id, _nick) do
     # Fetch guild member to get nickname and other guild-specific data
-    with {:ok, member} <- Api.get_guild_member(guild_id, user_id),
+    with {:ok, member} <- Guild.member(guild_id, user_id),
          # Get user data - try cache first, then API
          user <- get_user_data(user_id) do
       if user do

@@ -53,6 +53,7 @@ defmodule DdbmWeb.Layouts do
                 <.nav_link navigate="/tokens/leaderboard" icon="hero-trophy">Leaderboard</.nav_link>
                 <.nav_link navigate="/tokens/log" icon="hero-list-bullet">Log</.nav_link>
                 <.nav_link navigate="/tokens/give" icon="hero-gift">Give</.nav_link>
+                <.nav_link navigate="/admin" icon="hero-chart-bar">Admin</.nav_link>
               </div>
             </div>
 
@@ -96,6 +97,7 @@ defmodule DdbmWeb.Layouts do
               <.nav_link navigate="/tokens/leaderboard" icon="hero-trophy">Leaderboard</.nav_link>
               <.nav_link navigate="/tokens/log" icon="hero-list-bullet">Log</.nav_link>
               <.nav_link navigate="/tokens/give" icon="hero-gift">Give</.nav_link>
+              <.nav_link navigate="/admin" icon="hero-chart-bar">Admin</.nav_link>
             </div>
           </div>
         </nav>
